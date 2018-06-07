@@ -5,7 +5,9 @@ from sudoku_cell_widget import SudokuCellWidget
 MAJOR_LINE_SIZE = 6
 MINOR_LINE_SIZE = 2
 
+
 class Ui_Form(object):
+
     def setupUi(self, Form):
         Form.setObjectName("Form")
 
@@ -14,12 +16,14 @@ class Ui_Form(object):
         # quadratic
         sudoku_size = 900
         x_off, y_off = 30, 30
-        cell_size = 96 #int(sudoku_size // 9)
+        cell_size = 96  # int(sudoku_size // 9)
 
         def gen_frame(parent, x_off, y_off):
             frame = QtWidgets.QFrame(parent)
             frame.setGeometry(QtCore.QRect(x_off, y_off, sudoku_size, sudoku_size))
-            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+            sizePolicy = QtWidgets.QSizePolicy(
+                QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+            )
             sizePolicy.setHorizontalStretch(0)
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(frame.sizePolicy().hasHeightForWidth())
@@ -31,24 +35,27 @@ class Ui_Form(object):
 
         self.frame = gen_frame(Form, x_off, y_off)
         # to draw box over containing cells
-        #self.inner_frame = gen_frame(self.frame, 0, 0)
-
+        # self.inner_frame = gen_frame(self.frame, 0, 0)
 
         ## create grid of lines ###################
-        #line_off = int(sudoku_size / 3)
+        # line_off = int(sudoku_size / 3)
 
         # large lines between blocks
         major_hor_lines = []
         major_ver_lines = []
-        #offset = -MAJOR_LINE_SIZE
+        # offset = -MAJOR_LINE_SIZE
         for i in range(1, 3):
             offset = i * (MAJOR_LINE_SIZE + 3 * cell_size + 2 * MINOR_LINE_SIZE)
             line_ = line(self.frame, QtWidgets.QFrame.HLine)
-            line_.setGeometry(QtCore.QRect(MAJOR_LINE_SIZE, offset, sudoku_size, MAJOR_LINE_SIZE))
+            line_.setGeometry(
+                QtCore.QRect(MAJOR_LINE_SIZE, offset, sudoku_size, MAJOR_LINE_SIZE)
+            )
             major_hor_lines.append(line_)
 
             line_ = line(self.frame, QtWidgets.QFrame.VLine)
-            line_.setGeometry(QtCore.QRect(offset, MAJOR_LINE_SIZE, MAJOR_LINE_SIZE, sudoku_size))
+            line_.setGeometry(
+                QtCore.QRect(offset, MAJOR_LINE_SIZE, MAJOR_LINE_SIZE, sudoku_size)
+            )
             major_ver_lines.append(line_)
 
         # small lines between cells
@@ -85,7 +92,9 @@ class Ui_Form(object):
 
             x_pos += cell_size
 
-        for line_ in major_hor_lines + major_ver_lines + minor_hor_lines + minor_ver_lines:
+        for line_ in (
+            major_hor_lines + major_ver_lines + minor_hor_lines + minor_ver_lines
+        ):
             line_.raise_()
         self.frame.raise_()
 
@@ -96,9 +105,12 @@ class Ui_Form(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
 
+
 def line(frame, shape) -> QtWidgets.QFrame:
     line = QtWidgets.QFrame(frame)
-    sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+    sizePolicy = QtWidgets.QSizePolicy(
+        QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+    )
     sizePolicy.setHorizontalStretch(0)
     sizePolicy.setVerticalStretch(0)
     line.setSizePolicy(sizePolicy)
@@ -108,6 +120,7 @@ def line(frame, shape) -> QtWidgets.QFrame:
     line.setLineWidth(MAJOR_LINE_SIZE)
     return line
 
+
 def minor_line(frame, shape) -> QtWidgets.QFrame:
     line_ = line(frame, shape)
     line_.setLineWidth(MINOR_LINE_SIZE)
@@ -116,10 +129,10 @@ def minor_line(frame, shape) -> QtWidgets.QFrame:
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     form = QtWidgets.QWidget()
     ui = Ui_Form()
     ui.setupUi(form)
     form.show()
     sys.exit(app.exec_())
-

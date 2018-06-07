@@ -11,6 +11,7 @@ from PyQt5.QtCore import pyqtProperty, pyqtSlot, QSize, Qt
 from PyQt5.QtGui import QBrush, QColor, QPainter, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget
 
+
 class SudokuCellWidget(QWidget):
     """SudokuCellWidget(QWidget)
 
@@ -24,7 +25,7 @@ class SudokuCellWidget(QWidget):
         self._fixed = True
         self._bg_color = QColor(255, 255, 255)
         self._fg_color = QColor(0, 0, 0)
-        self.setFocusPolicy(Qt.FocusPolicy(2)) # 2 = ClickPolicy
+        self.setFocusPolicy(Qt.FocusPolicy(2))  # 2 = ClickPolicy
         self.setFixedWidth(size)
         self.setFixedHeight(size)
 
@@ -35,36 +36,45 @@ class SudokuCellWidget(QWidget):
         painter.setBrush(QBrush(self._bg_color))
         painter.drawRect(event.rect())
 
-        #painter.translate(self.width()/2.0, self.height()/2.0)
+        # painter.translate(self.width()/2.0, self.height()/2.0)
         painter.setPen(self.fg_color)
-        #font = painter.font()
+        # font = painter.font()
         font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
 
         if isinstance(self._number, list):
-            #text = ''
+            # text = ''
             possible_nums = self._number
 
             def row_to_str(row, possible_nums):
-                num_poss_iter = ((row*3+idx+1, possible) for idx, possible in enumerate(possible_nums[3*row:3*row+3]))
+                num_poss_iter = (
+                    (row * 3 + idx + 1, possible)
+                    for idx, possible in enumerate(possible_nums[3 * row : 3 * row + 3])
+                )
                 # Non-Breaking Space. Forces Qt to lay out the text as given
                 # and not stretch or shuffle whitespace around
-                nbs = '\u00A0'
-                return nbs.join(str(num) if poss else nbs for num, poss in num_poss_iter)
+                nbs = "\u00A0"
+                return nbs.join(
+                    str(num) if poss else nbs for num, poss in num_poss_iter
+                )
 
-            text = '\n'.join(row_to_str(row, possible_nums) for row in range(3))
+            text = "\n".join(row_to_str(row, possible_nums) for row in range(3))
 
-            #num_rows = ((range(i, i+3), self._number[i:i+3]) for i in range(3))
-            #str_rows = (' '.join(str(num) if possible else ' ' for num, possible in zip(nums, nums_possible)) for nums, nums_possible in num_rows)
-            #text = '\n'.join(str_rows)
+            # num_rows = ((range(i, i+3), self._number[i:i+3]) for i in range(3))
+            # str_rows = (' '.join(str(num) if possible else ' ' for num, possible in zip(nums, nums_possible)) for nums, nums_possible in num_rows)
+            # text = '\n'.join(str_rows)
             font.setPixelSize(24)
             alignment = Qt.AlignCenter
         else:
-            text = str(self._number) if self._number is not 0 else ''
+            text = str(self._number) if self._number is not 0 else ""
             font.setPixelSize(80)
             alignment = Qt.AlignCenter
 
         painter.setFont(font)
-        painter.drawText(event.rect(), alignment | Qt.TextIncludeTrailingSpaces | Qt.TextJustificationForced, text)
+        painter.drawText(
+            event.rect(),
+            alignment | Qt.TextIncludeTrailingSpaces | Qt.TextJustificationForced,
+            text,
+        )
         painter.end()
 
     def sizeHint(self):
@@ -88,18 +98,18 @@ class SudokuCellWidget(QWidget):
 
     def setNumberPossibility(self, number):
         poss = self.getNumberPossibilities() or [False] * 9
-        poss[number-1] = True
+        poss[number - 1] = True
         self._number = poss
         self.update()
 
     def getFixed(self):
         print(self._fixed)
-        print('getFixed')
+        print("getFixed")
         return self._fixed
 
     @pyqtSlot(bool)
     def setFixed(self, fixed):
-        print('setFixed')
+        print("setFixed")
         self._fixed = fixed
         print(self._fixed)
         if fixed:
@@ -132,15 +142,25 @@ class SudokuCellWidget(QWidget):
     # Handle keyboard input and focus events
 
     def keyPressEvent(self, key_event):
-        one  = Qt.Key_1
+        one = Qt.Key_1
         nine = Qt.Key_9
 
         # TODO: Debugging list
         #       Set cell possibilities (possibly unsetting a fixed entry)
         # NEO
-        #second_row = [Qt.Key_X, Qt.Key_V, Qt.Key_L, Qt.Key_C, Qt.Key_W, Qt.Key_K, Qt.Key_H, Qt.Key_G, Qt.Key_F]
+        # second_row = [Qt.Key_X, Qt.Key_V, Qt.Key_L, Qt.Key_C, Qt.Key_W, Qt.Key_K, Qt.Key_H, Qt.Key_G, Qt.Key_F]
         # F keys
-        second_row = [Qt.Key_F1, Qt.Key_F2, Qt.Key_F3, Qt.Key_F4, Qt.Key_F5, Qt.Key_F6, Qt.Key_F7, Qt.Key_F8, Qt.Key_F9]
+        second_row = [
+            Qt.Key_F1,
+            Qt.Key_F2,
+            Qt.Key_F3,
+            Qt.Key_F4,
+            Qt.Key_F5,
+            Qt.Key_F6,
+            Qt.Key_F7,
+            Qt.Key_F8,
+            Qt.Key_F9,
+        ]
 
         # check probably irrelevant
         # set checks, too
@@ -168,6 +188,7 @@ class SudokuCellWidget(QWidget):
     def focusOutEvent(self, _event):
         self.setBgColor(QColor(255, 255, 255))
         self.update()
+
 
 if __name__ == "__main__":
 
