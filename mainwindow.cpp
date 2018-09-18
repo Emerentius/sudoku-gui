@@ -9,7 +9,7 @@
 const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
 
-QFrame* line(QWidget* parent, QFrame::Shape shape) {
+auto line(QWidget* parent, QFrame::Shape shape) -> QFrame* {
     auto frame = new QFrame(parent);
     auto size_policy = QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
     size_policy.setHorizontalStretch(0);
@@ -23,7 +23,7 @@ QFrame* line(QWidget* parent, QFrame::Shape shape) {
 }
 
 
-QFrame* minor_line(QWidget* parent, QFrame::Shape shape) {
+auto minor_line(QWidget* parent, QFrame::Shape shape) -> QFrame* {
     auto frame = line(parent, shape);
     frame->setLineWidth(MINOR_LINE_SIZE);
     return frame;

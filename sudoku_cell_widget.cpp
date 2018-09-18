@@ -14,21 +14,13 @@
 
 SudokuCellWidget::SudokuCellWidget(int size, QWidget *parent) :
     QWidget(parent)
-    /*
-    m_bg_color(UNFOCUSED_BG),
-    m_fg_color(DEFAULT_FG),
-    m_is_clue(false),
-    m_is_entry(false),
-    m_candidates(),
-    m_digit(0)
-    */
 {
     this->setFocusPolicy(Qt::FocusPolicy::ClickFocus);
     this->setFixedWidth(size);
     this->setFixedHeight(size);
 }
 
-void SudokuCellWidget::paintEvent(QPaintEvent *event) {
+auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -86,11 +78,11 @@ void SudokuCellWidget::paintEvent(QPaintEvent *event) {
 }
 
 // TODO: Is this necessary?
-QSize SudokuCellWidget::sizeHint() const {
+auto SudokuCellWidget::sizeHint() const -> QSize {
     return QSize(this->width(), this->height());
 }
 
-int SudokuCellWidget::digit() const {
+auto SudokuCellWidget::digit() const -> int {
     if (m_is_entry) {
         return m_digit;
     }
@@ -98,7 +90,7 @@ int SudokuCellWidget::digit() const {
     // else throw some error
 }
 
-std::bitset<9> SudokuCellWidget::candidates() const {
+auto SudokuCellWidget::candidates() const -> std::bitset<9> {
     if (!m_is_entry) {
         return m_candidates;
     }
@@ -109,17 +101,17 @@ std::bitset<9> SudokuCellWidget::candidates() const {
 // TODO: necessary?
 //bool is_clue() const { return m_is_clue; }
 
-void SudokuCellWidget::focusInEvent(QFocusEvent *event) {
+auto SudokuCellWidget::focusInEvent(QFocusEvent *event) -> void {
     m_bg_color = FOCUSED_BG;
     this->update();
 }
 
-void SudokuCellWidget::focusOutEvent(QFocusEvent *event) {
+auto SudokuCellWidget::focusOutEvent(QFocusEvent *event) -> void {
     m_bg_color = UNFOCUSED_BG;
     this->update();
 }
 
-void SudokuCellWidget::set_possibility(int digit) {
+auto SudokuCellWidget::set_possibility(int digit) -> void {
     if (m_is_entry) {
         // TODO: throw some error
     }
@@ -129,7 +121,7 @@ void SudokuCellWidget::set_possibility(int digit) {
     this->update();
 }
 
-void SudokuCellWidget::set_clue(int digit) {
+auto SudokuCellWidget::set_clue(int digit) -> void {
     if (0 < digit && digit < 10) {
         m_is_entry = true;
         m_is_clue = true;
@@ -142,7 +134,7 @@ void SudokuCellWidget::set_clue(int digit) {
 }
 
 // non-clue entry
-void SudokuCellWidget::set_entry(int digit) {
+auto SudokuCellWidget::set_entry(int digit) -> void {
     if (0 < digit && digit < 10) {
         m_is_entry = true;
         m_is_clue = false;
@@ -154,7 +146,7 @@ void SudokuCellWidget::set_entry(int digit) {
     this->update();
 }
 
-void SudokuCellWidget::clear() {
+auto SudokuCellWidget::clear() -> void {
     m_is_clue = false;
     m_is_entry = false;
     m_digit = 0;
@@ -163,7 +155,7 @@ void SudokuCellWidget::clear() {
     this->update();
 }
 
-void SudokuCellWidget::keyPressEvent(QKeyEvent *event) {
+auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     auto one = Qt::Key_1;
     auto nine = Qt::Key_9;
 

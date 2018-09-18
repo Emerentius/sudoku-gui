@@ -29,14 +29,14 @@ class SudokuCellWidget final : public QWidget {
 
     public:
         explicit SudokuCellWidget(int size, QWidget *parent = 0);
-        void paintEvent(QPaintEvent *event) override;
+        auto paintEvent(QPaintEvent *event) -> void override;
         // TODO: Is this necessary?
-        QSize sizeHint() const override;
-        int digit() const;
-        std::bitset<9> candidates() const;
-        void focusInEvent(QFocusEvent *event) override;
-        void focusOutEvent(QFocusEvent *event) override;
-        void keyPressEvent(QKeyEvent *event) override;
+        auto sizeHint() const -> QSize override;
+        auto digit() const -> int;
+        auto candidates() const -> std::bitset<9>;
+        auto focusInEvent(QFocusEvent *event) -> void override;
+        auto focusOutEvent(QFocusEvent *event) -> void override;
+        auto keyPressEvent(QKeyEvent *event) -> void override;
 
     public slots:
         void set_possibility(int digit);
