@@ -2,6 +2,9 @@
 /sudoku-gui
 mocs_compilation.cpp
 
+# bindings to rust sudoku crate
+/sudoku_ffi
+
 ####################################################
 # everything below from github.com/github/gitignore
 ####################################################

@@ -5,7 +5,7 @@
 #include "ui_mainwindow.h"
 #include <vector>
 #include <assert.h>
-#include "bindings.h"
+#include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
 
 const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
