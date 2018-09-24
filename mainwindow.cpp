@@ -5,6 +5,7 @@
 #include "ui_mainwindow.h"
 #include <vector>
 #include <assert.h>
+#include "bindings.h"
 
 const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
@@ -121,23 +122,25 @@ MainWindow::MainWindow(QWidget *parent) :
 
         x_pos += cell_size;
     }
-    /*
-    for (auto line : major_hor_lines) {
-        //line->raise();
-    }
-    for (auto line : major_ver_lines) {
-        //line->raise();
-    }
-    for (auto line : minor_hor_lines) {
-        //line->raise();
-    }
-    for (auto line : minor_ver_lines) {
-        //line->raise();
-    }
-    //m_sudoku_grid->raise();
-    */
-    //this->update();
 
+    Sudoku sudoku = sudoku_generate_unique();
+    auto solver = strategy_solver_new(sudoku);
+    auto cell_ptr = sudoku_as_ptr(&sudoku);
+    for (int cell = 0; cell < 81; cell++) {
+        auto& c = cells[cell];
+        if (*cell_ptr != 0) {
+            c->set_clue(*cell_ptr);
+        } else {
+            auto candidates = strategy_solver_cell_candidates(solver, cell);
+            for (int dig = 1; dig < 10; dig++) {
+                if (candidates & 1) {
+                    c->set_possibility(dig, true);
+                }
+                candidates >>= 1;
+            }
+        }
+        cell_ptr++;
+    }
 }
 
 MainWindow::~MainWindow()

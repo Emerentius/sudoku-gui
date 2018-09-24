@@ -14,7 +14,6 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    auto setupUi(QWidget *widget);
     ~MainWindow();
 
 private:
