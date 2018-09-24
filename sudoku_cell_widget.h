@@ -39,7 +39,7 @@ class SudokuCellWidget final : public QWidget {
         auto keyPressEvent(QKeyEvent *event) -> void override;
 
     public slots:
-        void set_possibility(int digit);
+        void set_possibility(int digit, bool is_possible);
         void set_clue(int digit);
         void set_entry(int digit);
         void clear();

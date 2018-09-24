@@ -111,12 +111,12 @@ auto SudokuCellWidget::focusOutEvent(QFocusEvent *event) -> void {
     this->update();
 }
 
-auto SudokuCellWidget::set_possibility(int digit) -> void {
+auto SudokuCellWidget::set_possibility(int digit, bool is_possible) -> void {
     if (m_is_entry) {
         // TODO: throw some error
     }
     if (0 < digit && digit < 10) {
-        m_candidates[digit-1] = true;
+        m_candidates[digit-1] = is_possible;
     }
     this->update();
 }
@@ -181,7 +181,8 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
 
         if (key_ptr != second_row.end()) {
             int pos = std::distance(second_row.begin(), key_ptr);
-            this->set_possibility(pos+1);
+            auto is_possible = m_candidates[pos];
+            this->set_possibility(pos+1, !is_possible);
         }
     }
 }
