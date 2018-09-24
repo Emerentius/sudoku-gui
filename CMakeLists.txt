@@ -55,13 +55,15 @@ ExternalProject_Add(
 
 SET(RUST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sudoku_ffi/src/sudoku_ffi")
 SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/libsudoku_ffi.a")
-add_custom_target(rust_target DEPENDS "${RUST_LIB}")
-
 list(APPEND Libs ${RUST_LIB})
+
 list(APPEND Libs Qt5::Widgets Threads::Threads ${CMAKE_DL_LIBS})
 set(SRCS main.cpp mainwindow.cpp sudoku_cell_widget.cpp)
 add_executable(sudoku-gui ${SRCS})
-add_dependencies(sudoku-gui rust_target sudoku_ffi)
+
+# rust libraries only exist after sudoku-ffi was built
+add_dependencies(sudoku-gui sudoku_ffi)
+
 target_include_directories(sudoku-gui PRIVATE src)
 target_link_libraries(sudoku-gui ${Libs})
 set_target_properties(sudoku-gui PROPERTIES
