@@ -1,4 +1,5 @@
 #include "sudoku_grid_widget.h"
+#include "sudoku_cell_widget.h"
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
 
 const int MAJOR_LINE_SIZE = 6;
@@ -87,24 +88,22 @@ auto SudokuGridWidget::generate_minor_lines() -> void {
 
 auto SudokuGridWidget::generate_cells() -> void {
     std::vector<SudokuCellWidget*> cells;
-    auto x_pos = 0;
+    auto y_pos = 0;
+    for (int y_idx = 0; y_idx < 9; y_idx++) {
+        y_pos += y_idx % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE;
 
-    for (int x_idx = 0; x_idx < 9; x_idx++) {
-        x_pos += x_idx % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE;
-
-        auto y_pos = 0;
-        for (int y_idx = 0; y_idx < 9; y_idx++) {
-            y_pos += y_idx % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE;
-
-            auto cell = new SudokuCellWidget(cell_size, this);
+        auto x_pos = 0;
+        for (int x_idx = 0; x_idx < 9; x_idx++) {
+            x_pos += x_idx % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE;
+            auto cell = new SudokuCellWidget(cell_size, y_idx*9 + x_idx, this);
             cell->move(x_pos, y_pos);
             cell->show();
             cells.push_back(cell);
 
-            y_pos += cell_size;
+            x_pos += cell_size;
         }
 
-        x_pos += cell_size;
+        y_pos += cell_size;
     }
 
     m_cells = cells;
@@ -133,6 +132,24 @@ auto SudokuGridWidget::compute_candidates() -> void {
             for (int dig = 1; dig < 10; dig++) {
                 if (candidates & 1) {
                     c->set_possibility(dig, true);
+                }
+                candidates >>= 1;
+            }
+        }
+        cell_ptr++;
+    }
+}
+
+auto SudokuGridWidget::recompute_candidates() -> void {
+    auto solver = strategy_solver_new(m_sudoku);
+    auto cell_ptr = sudoku_as_ptr(&m_sudoku);
+    for (int cell = 0; cell < 81; cell++) {
+        if (*cell_ptr == 0) {
+            auto& c = m_cells[cell];
+            auto candidates = strategy_solver_cell_candidates(solver, cell);
+            for (int dig = 1; dig < 10; dig++) {
+                if ((candidates & 1) == 0) {
+                    c->set_possibility(dig, false);
                 }
                 candidates >>= 1;
             }

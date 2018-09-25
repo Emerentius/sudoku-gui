@@ -2,7 +2,6 @@
 //
 // The widget for the fillable cells in a sudoku grid.
 
-#include "sudoku_cell_widget.h"
 #include <QtCore>
 #include <QSize>
 #include <Qt>
@@ -11,9 +10,13 @@
 #include <QPainter>
 #include <QFontDatabase>
 #include <algorithm>
+#include "sudoku_cell_widget.h"
+#include "sudoku_grid_widget.h"
 
-SudokuCellWidget::SudokuCellWidget(int size, QWidget *parent) :
-    QWidget(parent)
+SudokuCellWidget::SudokuCellWidget(int size, int cell_nr, SudokuGridWidget *parent) :
+    QWidget(parent),
+    m_grid(parent),
+    m_cell_nr(cell_nr)
 {
     this->setFocusPolicy(Qt::FocusPolicy::ClickFocus);
     this->setFixedWidth(size);
@@ -136,6 +139,9 @@ auto SudokuCellWidget::set_clue(int digit) -> void {
 // non-clue entry
 auto SudokuCellWidget::set_entry(int digit) -> void {
     if (0 < digit && digit < 10) {
+        m_grid->m_sudoku._0[m_cell_nr] = digit;
+        m_grid->recompute_candidates();
+
         m_is_entry = true;
         m_is_clue = false;
         m_digit = digit;

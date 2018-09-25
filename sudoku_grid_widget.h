@@ -1,12 +1,16 @@
 #pragma once
 
-#include "sudoku_cell_widget.h"
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
 #include <QFrame>
 
+class SudokuCellWidget;
+
 class SudokuGridWidget final : public QFrame {
     std::vector<SudokuCellWidget*> m_cells;
-    Sudoku m_sudoku;
+
+    // TODO: make private again
+    public:
+        Sudoku m_sudoku;
 
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
@@ -18,4 +22,5 @@ class SudokuGridWidget final : public QFrame {
         auto set_clues() -> void;
 
         auto compute_candidates() -> void;
+        auto recompute_candidates() -> void;
 };
