@@ -205,7 +205,34 @@ auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void
     auto n_cell = row * 9 + col;
     m_cells[n_cell]->setFocus();
 }
+
+auto SudokuGridWidget::push_savepoint() -> void {
+    auto sudoku = this->sudoku();
+    auto candidates = m_candidates.back();
+    m_sudoku.push_back(sudoku);
+    m_candidates.push_back(candidates);
+}
+
+auto SudokuGridWidget::pop_savepoint() -> void {
+    assert(m_candidates.size() > 0 && m_sudoku.size() > 0);
+    m_sudoku.pop_back();
+    m_candidates.pop_back();
+
+    this->update_cells();
+}
+
+auto SudokuGridWidget::undo() -> bool {
+    if (m_candidates.size() > 1) {
+        this->pop_savepoint();
+        return true;
+    } else {
+        return false;
+    }
+}
+
 auto SudokuGridWidget::insert_entry(Entry entry) -> void {
+    this->push_savepoint();
+
     auto& sudoku = this->current_sudoku()._0;
     sudoku[entry.cell] = entry.num;
 
@@ -214,9 +241,11 @@ auto SudokuGridWidget::insert_entry(Entry entry) -> void {
 }
 
 auto SudokuGridWidget::set_candidate(Entry entry, bool is_possible) -> void {
+    this->push_savepoint();
+
     auto& cands = this->current_candidates();
     auto& cell_cands = cands[entry.cell];
-    cell_cands &= !(1 << entry.num - 1);
+    cell_cands &= ~( 1 << entry.num - 1);
     cell_cands |= (uint16_t) is_possible << entry.num - 1;
     m_cells[entry.cell]->try_set_possibility(entry.num, is_possible);
 }

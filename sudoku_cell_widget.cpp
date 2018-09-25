@@ -156,6 +156,15 @@ auto SudokuCellWidget::clear() -> void {
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
+    if (
+        (event->modifiers() & Qt::KeyboardModifier::ControlModifier) != 0
+        && event->key() == Qt::Key_Z
+    ) {
+        // TODO: on shift, redo
+        m_grid->undo();
+        return;
+    }
+
     Qt::Key arrow_keys[] = {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down};
     Direction directions[] = {Direction::Left, Direction::Up, Direction::Right, Direction::Down};
 

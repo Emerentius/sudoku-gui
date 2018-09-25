@@ -22,6 +22,8 @@ class SudokuGridWidget final : public QFrame {
     private:
         auto current_sudoku() -> Sudoku&;
         auto current_candidates() -> Candidates&;
+        auto push_savepoint() -> void;
+        auto pop_savepoint() -> void;
         auto update_cells() -> void;
 
     public:
@@ -40,4 +42,5 @@ class SudokuGridWidget final : public QFrame {
 
         auto insert_entry(Entry entry) -> void;
         auto set_candidate(Entry entry, bool is_possible) -> void;
+        auto undo() -> bool;
 };
