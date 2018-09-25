@@ -28,14 +28,31 @@ auto SudokuCellWidget::is_clue() const -> bool {
     return m_is_clue;
 }
 
+auto SudokuCellWidget::fg_color() const -> QColor {
+    if (m_is_entry && !m_is_clue) {
+        return FG_NONCLUE_ENTRY;
+    } else {
+        return FG_DEFAULT;
+    }
+}
+auto SudokuCellWidget::bg_color() const -> QColor {
+    if (m_is_focused) {
+        return BG_FOCUSED;
+    } else if (m_is_highlighted) {
+        return BG_HIGHLIGHTED;
+    } else {
+        return BG_DEFAULT;
+    }
+}
+
 auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QBrush(m_bg_color));
+    painter.setBrush(QBrush(this->bg_color()));
     painter.drawRect(event->rect());
 
-    painter.setPen(m_fg_color);
+    painter.setPen(this->fg_color());
     auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
 
     auto const alignment = Qt::AlignCenter;
@@ -107,12 +124,12 @@ auto SudokuCellWidget::candidates() const -> std::bitset<9> {
 }
 
 auto SudokuCellWidget::focusInEvent(QFocusEvent *event) -> void {
-    m_bg_color = FOCUSED_BG;
+    m_is_focused = true;
     this->update();
 }
 
 auto SudokuCellWidget::focusOutEvent(QFocusEvent *event) -> void {
-    m_bg_color = UNFOCUSED_BG;
+    m_is_focused = false;
     this->update();
 }
 
@@ -130,7 +147,6 @@ auto SudokuCellWidget::set_clue(int digit) -> void {
     m_is_entry = true;
     m_is_clue = true;
     m_digit = digit;
-    m_fg_color = DEFAULT_FG;
 }
 
 // non-clue entry
@@ -144,7 +160,6 @@ auto SudokuCellWidget::try_set_entry(int digit) -> bool {
     m_is_entry = true;
     m_is_clue = false;
     m_digit = digit;
-    m_fg_color = NONCLUE_ENTRY_FG;
 }
 
 auto SudokuCellWidget::clear() -> void {
@@ -152,7 +167,6 @@ auto SudokuCellWidget::clear() -> void {
     m_is_entry = false;
     m_digit = 0;
     m_candidates = std::bitset<9>();
-    m_fg_color = DEFAULT_FG;
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {

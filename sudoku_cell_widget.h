@@ -16,10 +16,11 @@ class SudokuGridWidget;
 class SudokuCellWidget final : public QWidget {
     Q_OBJECT
 
-    const QColor DEFAULT_FG = QColor(0, 0, 0);             // black
-    const QColor NONCLUE_ENTRY_FG = QColor(110, 110, 110); // grey
-    const QColor UNFOCUSED_BG = QColor(255, 255, 255);     // white
-    const QColor FOCUSED_BG = QColor(172, 172, 255);
+    const QColor FG_DEFAULT = QColor(0, 0, 0);             // black
+    const QColor FG_NONCLUE_ENTRY = QColor(110, 110, 110); // grey
+    const QColor BG_DEFAULT = QColor(255, 255, 255);     // white
+    const QColor BG_FOCUSED = QColor(172, 172, 255);       // light blue
+    const QColor BG_HIGHLIGHTED = QColor(255, 153, 153);   // light red
 
     SudokuGridWidget *m_grid;
     int m_cell_nr;
@@ -29,8 +30,16 @@ class SudokuCellWidget final : public QWidget {
     int m_digit = 0;
     std::bitset<9> m_candidates = {};
 
-    QColor m_bg_color = UNFOCUSED_BG;
-    QColor m_fg_color = DEFAULT_FG;
+    //QColor m_bg_color = BG_DEFAULT;
+    //QColor m_fg_color = FG_DEFAULT;
+
+    public:
+        bool m_is_focused = false;
+        bool m_is_highlighted = false;
+
+    private:
+        auto fg_color() const -> QColor;
+        auto bg_color() const -> QColor;
 
     public:
         explicit SudokuCellWidget(int size, int cell_nr, SudokuGridWidget *parent = 0);

@@ -187,8 +187,10 @@ auto SudokuGridWidget::update_cells() -> void {
             }
         }
         cell_ptr++;
-        c->update();
+        c->update(); // currently superflous because update_highlights does it as well
     }
+
+    this->update_highlights();
 }
 
 auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void {
@@ -248,9 +250,22 @@ auto SudokuGridWidget::set_candidate(Entry entry, bool is_possible) -> void {
     cell_cands &= ~( 1 << entry.num - 1);
     cell_cands |= (uint16_t) is_possible << entry.num - 1;
     m_cells[entry.cell]->try_set_possibility(entry.num, is_possible);
+    this->update_highlights();
 }
 
 auto SudokuGridWidget::highlight_digit(int digit) -> void {
     assert(digit >= 0 && digit < 10);
     m_highlighted_digit = digit;
+    this->update_highlights();
+}
+
+auto SudokuGridWidget::update_highlights() -> void {
+    auto hl_digit = m_highlighted_digit;
+    //for (int n_cell = 0; n_cell < 81; n_cell++) {
+    for (auto& cell : m_cells) {
+        //auto& c = m_cells[n_cell];
+        auto is_candidate = cell->candidates()[hl_digit - 1];
+        cell->m_is_highlighted = is_candidate;
+        cell->update();
+    }
 }

@@ -28,6 +28,7 @@ class SudokuGridWidget final : public QFrame {
         auto push_savepoint() -> void;
         auto pop_savepoint() -> void;
         auto update_cells() -> void;
+        auto update_highlights() -> void;
 
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
