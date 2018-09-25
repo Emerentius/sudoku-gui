@@ -58,7 +58,7 @@ SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/libsudoku_ffi.a")
 list(APPEND Libs ${RUST_LIB})
 
 list(APPEND Libs Qt5::Widgets Threads::Threads ${CMAKE_DL_LIBS})
-set(SRCS main.cpp mainwindow.cpp sudoku_cell_widget.cpp)
+set(SRCS main.cpp mainwindow.cpp sudoku_cell_widget.cpp sudoku_grid_widget.cpp)
 add_executable(sudoku-gui ${SRCS})
 
 # rust libraries only exist after sudoku-ffi was built
