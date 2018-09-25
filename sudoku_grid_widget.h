@@ -9,12 +9,20 @@ enum class Direction {
     Left, Right, Up, Down
 };
 
+using Candidates = std::array<uint16_t, 81>;
+
 class SudokuGridWidget final : public QFrame {
-    std::vector<SudokuCellWidget*> m_cells;
+    std::array<SudokuCellWidget*, 81> m_cells;
+    std::vector<Candidates> m_candidates;
 
     // TODO: make private again
     public:
-        Sudoku m_sudoku;
+        std::vector<Sudoku> m_sudoku;
+
+    private:
+        auto current_sudoku() -> Sudoku&;
+        auto current_candidates() -> Candidates&;
+        auto update_cells() -> void;
 
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
@@ -29,4 +37,7 @@ class SudokuGridWidget final : public QFrame {
         auto recompute_candidates() -> void;
 
         auto move_focus(int current_cell, Direction direction) -> void;
+
+        auto insert_entry(Entry entry) -> void;
+        auto set_candidate(Entry entry, bool is_possible) -> void;
 };

@@ -10,6 +10,7 @@
 #include <QPainter>
 #include <QFontDatabase>
 #include <algorithm>
+#include <assert.h>
 #include "sudoku_cell_widget.h"
 #include "sudoku_grid_widget.h"
 
@@ -21,6 +22,10 @@ SudokuCellWidget::SudokuCellWidget(int size, int cell_nr, SudokuGridWidget *pare
     this->setFocusPolicy(Qt::FocusPolicy::ClickFocus);
     this->setFixedWidth(size);
     this->setFixedHeight(size);
+}
+
+auto SudokuCellWidget::is_clue() const -> bool {
+    return m_is_clue;
 }
 
 auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
@@ -101,9 +106,6 @@ auto SudokuCellWidget::candidates() const -> std::bitset<9> {
     // else throw some error
 }
 
-// TODO: necessary?
-//bool is_clue() const { return m_is_clue; }
-
 auto SudokuCellWidget::focusInEvent(QFocusEvent *event) -> void {
     m_bg_color = FOCUSED_BG;
     this->update();
@@ -114,42 +116,35 @@ auto SudokuCellWidget::focusOutEvent(QFocusEvent *event) -> void {
     this->update();
 }
 
-auto SudokuCellWidget::set_possibility(int digit, bool is_possible) -> void {
+auto SudokuCellWidget::try_set_possibility(int digit, bool is_possible) -> bool {
     if (m_is_entry) {
-        // TODO: throw some error
+        return false;
     }
-    if (0 < digit && digit < 10) {
-        m_candidates[digit-1] = is_possible;
-    }
-    this->update();
+    assert(0 < digit && digit < 10);
+    m_candidates[digit-1] = is_possible;
+    return true;
 }
 
 auto SudokuCellWidget::set_clue(int digit) -> void {
-    if (0 < digit && digit < 10) {
-        m_is_entry = true;
-        m_is_clue = true;
-        m_digit = digit;
-        m_fg_color = DEFAULT_FG;
-    } else {
-        // TODO: throw error
-    }
-    this->update();
+    assert(0 < digit && digit < 10);
+    m_is_entry = true;
+    m_is_clue = true;
+    m_digit = digit;
+    m_fg_color = DEFAULT_FG;
 }
 
 // non-clue entry
-auto SudokuCellWidget::set_entry(int digit) -> void {
-    if (0 < digit && digit < 10) {
-        m_grid->m_sudoku._0[m_cell_nr] = digit;
-        m_grid->recompute_candidates();
-
-        m_is_entry = true;
-        m_is_clue = false;
-        m_digit = digit;
-        m_fg_color = NONCLUE_ENTRY_FG;
-    } else {
-        // TODO: throw error
+auto SudokuCellWidget::try_set_entry(int digit) -> bool {
+    if (m_is_clue || m_is_entry) {
+        return false;
     }
-    this->update();
+
+    assert(0 < digit && digit < 10);
+
+    m_is_entry = true;
+    m_is_clue = false;
+    m_digit = digit;
+    m_fg_color = NONCLUE_ENTRY_FG;
 }
 
 auto SudokuCellWidget::clear() -> void {
@@ -158,7 +153,6 @@ auto SudokuCellWidget::clear() -> void {
     m_digit = 0;
     m_candidates = std::bitset<9>();
     m_fg_color = DEFAULT_FG;
-    this->update();
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
@@ -172,6 +166,7 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     if (position != end) {
         auto idx = std::distance(start, position);
         m_grid->move_focus(m_cell_nr, directions[idx]);
+        return;
     }
 
     if (m_is_clue) {
@@ -195,18 +190,27 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
 
     if (one <= event->key() && event->key() <= nine) {
         auto num = event->key() - Qt::Key_0;
-        if (!m_is_entry) {
-            this->set_entry(num);
-        }
-    } else if (event->key() == Qt::Key_Backspace) {
-        this->clear();
+        //this->try_set_entry(num);
+        m_grid->insert_entry(Entry {
+            cell: m_cell_nr,
+            num: num,
+        });
+    //} else if (event->key() == Qt::Key_Backspace) {
+    //    this->clear();
     } else {
         auto key_ptr = std::find(second_row.begin(), second_row.end(), event->key());
 
         if (key_ptr != second_row.end()) {
             int pos = std::distance(second_row.begin(), key_ptr);
             auto is_possible = m_candidates[pos];
-            this->set_possibility(pos+1, !is_possible);
+            m_grid->set_candidate(
+                Entry {
+                    cell: m_cell_nr,
+                    num: pos+1,
+                },
+                !is_possible
+            );
         }
     }
+    this->update();
 }

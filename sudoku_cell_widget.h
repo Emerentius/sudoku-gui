@@ -43,9 +43,11 @@ class SudokuCellWidget final : public QWidget {
         auto focusOutEvent(QFocusEvent *event) -> void override;
         auto keyPressEvent(QKeyEvent *event) -> void override;
 
+        auto is_clue() const -> bool;
+
     public slots:
-        void set_possibility(int digit, bool is_possible);
         void set_clue(int digit);
-        void set_entry(int digit);
+        bool try_set_possibility(int digit, bool is_possible);
+        bool try_set_entry(int digit);
         void clear();
 };
