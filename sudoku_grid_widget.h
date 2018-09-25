@@ -12,8 +12,11 @@ enum class Direction {
 using Candidates = std::array<uint16_t, 81>;
 
 class SudokuGridWidget final : public QFrame {
+    Q_OBJECT
+
     std::array<SudokuCellWidget*, 81> m_cells;
     std::vector<Candidates> m_candidates;
+    int m_highlighted_digit = 0; // 1-9, 0 for no highlight
 
     // TODO: make private again
     public:
@@ -43,4 +46,7 @@ class SudokuGridWidget final : public QFrame {
         auto insert_entry(Entry entry) -> void;
         auto set_candidate(Entry entry, bool is_possible) -> void;
         auto undo() -> bool;
+
+    public slots:
+        void highlight_digit(int digit);
 };

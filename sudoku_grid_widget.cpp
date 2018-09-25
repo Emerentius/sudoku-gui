@@ -250,3 +250,7 @@ auto SudokuGridWidget::set_candidate(Entry entry, bool is_possible) -> void {
     m_cells[entry.cell]->try_set_possibility(entry.num, is_possible);
 }
 
+auto SudokuGridWidget::highlight_digit(int digit) -> void {
+    assert(digit >= 0 && digit < 10);
+    m_highlighted_digit = digit;
+}
