@@ -5,6 +5,10 @@
 
 class SudokuCellWidget;
 
+enum class Direction {
+    Left, Right, Up, Down
+};
+
 class SudokuGridWidget final : public QFrame {
     std::vector<SudokuCellWidget*> m_cells;
 
@@ -23,4 +27,6 @@ class SudokuGridWidget final : public QFrame {
 
         auto compute_candidates() -> void;
         auto recompute_candidates() -> void;
+
+        auto move_focus(int current_cell, Direction direction) -> void;
 };

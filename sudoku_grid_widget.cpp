@@ -157,3 +157,18 @@ auto SudokuGridWidget::recompute_candidates() -> void {
         cell_ptr++;
     }
 }
+
+auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void {
+    auto row = current_cell / 9;
+    auto col = current_cell % 9;
+
+    switch (direction) {
+        case Direction::Left:  if (col > 0) { col -= 1; } break;
+        case Direction::Right: if (col < 8) { col += 1; } break;
+        case Direction::Up:    if (row > 0) { row -= 1; } break;
+        case Direction::Down:  if (row < 8) { row += 1; } break;
+    };
+
+    auto n_cell = row * 9 + col;
+    m_cells[n_cell]->setFocus();
+}

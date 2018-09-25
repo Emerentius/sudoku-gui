@@ -162,6 +162,18 @@ auto SudokuCellWidget::clear() -> void {
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
+    Qt::Key arrow_keys[] = {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down};
+    Direction directions[] = {Direction::Left, Direction::Up, Direction::Right, Direction::Down};
+
+    auto start = std::begin(arrow_keys);
+    auto end = std::end(arrow_keys);
+    auto position = std::find(start, end, event->key());
+
+    if (position != end) {
+        auto idx = std::distance(start, position);
+        m_grid->move_focus(m_cell_nr, directions[idx]);
+    }
+
     if (m_is_clue) {
         return;
     }
