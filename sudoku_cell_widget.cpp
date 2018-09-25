@@ -156,6 +156,10 @@ auto SudokuCellWidget::clear() -> void {
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
+    if (m_is_clue) {
+        return;
+    }
+
     auto one = Qt::Key_1;
     auto nine = Qt::Key_9;
 
@@ -173,7 +177,9 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
 
     if (one <= event->key() && event->key() <= nine) {
         auto num = event->key() - Qt::Key_0;
-        this->set_entry(num);
+        if (!m_is_entry) {
+            this->set_entry(num);
+        }
     } else if (event->key() == Qt::Key_Backspace) {
         this->clear();
     } else {
