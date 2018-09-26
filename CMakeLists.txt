@@ -35,6 +35,7 @@ find_package(Qt5 "${QT_MIN_VERSION}" CONFIG
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -53,7 +54,16 @@ ExternalProject_Add(
     INSTALL_COMMAND ""
 )
 
-SET(RUST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sudoku_ffi/src/sudoku_ffi")
+# This looks like it should work, but cmake can apparently see through the
+# the variables to where the directory is coming from
+# and determines that the static library built by the external project is
+# actually not a static library, because external projects are hardcoded as UTILITY
+# Therefore, it forbids linking.
+#set(RUST_DIR ExternalProject_Get_Property(sudoku_ffi SOURCE_DIR))
+
+# so instead, we hack it with the wrong variable
+# so it's at least sorta position independent
+SET(RUST_DIR "${CMAKE_CURRENT_BINARY_DIR}/sudoku_ffi/src/sudoku_ffi")
 SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/libsudoku_ffi.a")
 list(APPEND Libs ${RUST_LIB})
 
@@ -63,8 +73,6 @@ add_executable(sudoku-gui ${SRCS})
 
 # rust libraries only exist after sudoku-ffi was built
 add_dependencies(sudoku-gui sudoku_ffi)
-
-target_include_directories(sudoku-gui PRIVATE src)
 target_link_libraries(sudoku-gui ${Libs})
 set_target_properties(sudoku-gui PROPERTIES
     CXX_STANDARD 11
