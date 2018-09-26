@@ -68,12 +68,6 @@
      <property name="text">
       <string>1</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
-     </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
      </property>
@@ -97,12 +91,6 @@
      </property>
      <property name="text">
       <string>2</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
      </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
@@ -128,12 +116,6 @@
      <property name="text">
       <string>3</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
-     </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
      </property>
@@ -157,12 +139,6 @@
      </property>
      <property name="text">
       <string>5</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
      </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
@@ -188,12 +164,6 @@
      <property name="text">
       <string>6</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
-     </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
      </property>
@@ -217,12 +187,6 @@
      </property>
      <property name="text">
       <string>4</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
      </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
@@ -248,12 +212,6 @@
      <property name="text">
       <string>8</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
-     </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
      </property>
@@ -278,12 +236,6 @@
      <property name="text">
       <string>9</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
-     </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
      </property>
@@ -307,12 +259,6 @@
      </property>
      <property name="text">
       <string>7</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>true</bool>
      </property>
      <property name="arrowType">
       <enum>Qt::NoArrow</enum>
