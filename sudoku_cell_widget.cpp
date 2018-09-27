@@ -50,6 +50,16 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
     painter.setBrush(QBrush(this->bg_color()));
     painter.drawRect(event->rect());
 
+    // draw the highlight color over the focus background
+    // so neither is hidden
+    if (m_is_focused && m_is_highlighted) {
+        painter.setBrush(QBrush(BG_HIGHLIGHTED));
+        auto ring_width = this->width() / 12;
+        auto low = ring_width;
+        auto high = this->width() - 2*low;
+        painter.drawRoundedRect(QRect(low, low, high, high), 25, 25, Qt::SizeMode::RelativeSize);
+    }
+
     painter.setPen(this->fg_color());
     auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
 
