@@ -29,16 +29,15 @@ class SudokuGridWidget final : public QFrame {
         auto pop_savepoint() -> void;
         auto update_cells() -> void;
         auto update_highlights() -> void;
+        auto initialize_cells() -> void;
+        auto generate_layout() -> void;
+        auto set_clues() -> void;
+        auto compute_candidates() -> void;
 
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
 
         auto sudoku() -> Sudoku;
-        auto initialize_cells() -> void;
-        auto generate_layout() -> void;
-        auto set_clues() -> void;
-
-        auto compute_candidates() -> void;
         auto recompute_candidates() -> void;
 
         auto move_focus(int current_cell, Direction direction) -> void;
