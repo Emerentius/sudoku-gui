@@ -1,22 +1,15 @@
+#include <assert.h>
+#include <QGridLayout>
 #include "sudoku_grid_widget.h"
 #include "sudoku_cell_widget.h"
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
-#include <assert.h>
 
 const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
 
-// quadratic
-const int sudoku_size = 900;
-const int x_off = 30;
-const int y_off = 30;
-const int cell_size = 96;
-
 auto line(QWidget *parent, QFrame::Shape shape) -> QFrame* {
     auto frame = new QFrame(parent);
     auto size_policy = QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
-    size_policy.setHorizontalStretch(0);
-    size_policy.setVerticalStretch(0);
     frame->setSizePolicy(size_policy);
 
     frame->setFrameShape(shape);
@@ -32,84 +25,65 @@ auto minor_line(QWidget* parent, QFrame::Shape shape) -> QFrame* {
 }
 
 SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QFrame(parent) {
-    {
-        this->setGeometry(QRect(x_off, y_off, sudoku_size, sudoku_size));
-        auto size_policy = QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        size_policy.setHorizontalStretch(0);
-        size_policy.setVerticalStretch(0);
-        size_policy.setHeightForWidth(this->sizePolicy().hasHeightForWidth());
+    this->initialize_cells();
+    this->generate_layout();
 
-        this->setSizePolicy(size_policy);
-        this->setFrameShape(QFrame::Box);
-        this->setFrameShadow(QFrame::Plain);
-        this->setLineWidth(MAJOR_LINE_SIZE);
-    }
+    // set background to black
+    // it will cause the appearance of black lines in combination
+    // with the free space around the cells from the layout
+    QPalette pal = palette();
+    pal.setColor(QPalette::Background, Qt::black);
+    this->setAutoFillBackground(true);
+    this->setPalette(pal);
 
-    // create grid of lines
-    // using QFrame borders for lines
-    // may wanna switch to QLine
-    this->generate_major_lines();
-    this->generate_minor_lines();
-
-    this->generate_cells();
-
+    // generate random sudoku and initialize the undo-stack
     m_sudoku.push_back(sudoku_generate_unique());
     m_candidates.push_back(Candidates());
+
     this->set_clues();
     this->compute_candidates();
     this->update_cells();
 };
 
-
-auto SudokuGridWidget::generate_major_lines() -> void {
-    for (int i = 1; i < 3; i++) {
-        auto offset = i * (MAJOR_LINE_SIZE + 3 * cell_size + 2 * MINOR_LINE_SIZE);
-        auto hframe = new QFrame(this);
-        auto hline = line(hframe, QFrame::HLine);
-        hline->setGeometry(
-            QRect(MAJOR_LINE_SIZE, offset, sudoku_size, MAJOR_LINE_SIZE)
-        );
-
-        auto vline = line(this, QFrame::VLine);
-        vline->setGeometry(
-            QRect(offset, MAJOR_LINE_SIZE, MAJOR_LINE_SIZE, sudoku_size)
-        );
+auto SudokuGridWidget::initialize_cells() -> void {
+    for (int n_cell = 0; n_cell < 81; n_cell++) {
+        m_cells[n_cell] = new SudokuCellWidget(n_cell);
     }
 }
 
-auto SudokuGridWidget::generate_minor_lines() -> void {
-    auto pos = 0;
-    for (int i = 0; i < 9; i++ ) {
-        pos += cell_size + (i % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE);
-        auto hline = minor_line(this, QFrame::HLine);
-        hline->setGeometry(QRect(0, pos, sudoku_size, MINOR_LINE_SIZE));
+// assumes initialize_cells was already called
+auto SudokuGridWidget::generate_layout() -> void {
+    auto *outer_layout = new QGridLayout(this);
+    outer_layout->setMargin(0);
+    outer_layout->setHorizontalSpacing(MAJOR_LINE_SIZE);
+    outer_layout->setVerticalSpacing(MAJOR_LINE_SIZE);
 
-        auto vline = minor_line(this, QFrame::VLine);
-        vline->setGeometry(QRect(pos, 0, MINOR_LINE_SIZE, sudoku_size));
-    }
-}
+    std::vector<QGridLayout*> inner_layouts;
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0; col < 3; col++) {
+            // TODO: Find out whether these layouts are cleaned up by the outer layout
+            auto *inner_layout = new QGridLayout();
+            inner_layout->setMargin(0);
+            inner_layout->setHorizontalSpacing(MINOR_LINE_SIZE);
+            inner_layout->setVerticalSpacing(MINOR_LINE_SIZE);
 
-auto SudokuGridWidget::generate_cells() -> void {
-    std::array<SudokuCellWidget*, 81> cells;
-    auto y_pos = 0;
-    for (int y_idx = 0; y_idx < 9; y_idx++) {
-        y_pos += y_idx % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE;
-
-        auto x_pos = 0;
-        for (int x_idx = 0; x_idx < 9; x_idx++) {
-            x_pos += x_idx % 3 == 0 ? MAJOR_LINE_SIZE : MINOR_LINE_SIZE;
-            auto cell = new SudokuCellWidget(cell_size, y_idx*9 + x_idx, this);
-            cell->move(x_pos, y_pos);
-            cell->show();
-            cells[y_idx*9 + x_idx] = cell;
-
-            x_pos += cell_size;
+            inner_layouts.push_back(inner_layout);
+            outer_layout->addLayout(inner_layout, row, col, 0); // 4th arg is alignment, 0 means stretch
         }
-
-        y_pos += cell_size;
     }
 
-    m_cells = cells;
+    for (int cell = 0; cell < 81; cell++) {
+        auto row = cell / 9;
+        auto col = cell % 9;
+        auto band = row / 3;
+        auto stack = col / 3;
+        auto box = band*3 + stack;
+        auto minirow = row % 3;
+        auto minicol = col % 3;
+
+        auto *cell_widget = m_cells[cell];
+        inner_layouts[box]->addWidget(cell_widget, minirow, minicol, 0);
+    }
 }
 
 auto SudokuGridWidget::current_sudoku() -> Sudoku& {
@@ -261,9 +235,7 @@ auto SudokuGridWidget::highlight_digit(int digit) -> void {
 
 auto SudokuGridWidget::update_highlights() -> void {
     auto hl_digit = m_highlighted_digit;
-    //for (int n_cell = 0; n_cell < 81; n_cell++) {
     for (auto& cell : m_cells) {
-        //auto& c = m_cells[n_cell];
         auto is_candidate = cell->candidates()[hl_digit - 1];
         cell->m_is_highlighted = is_candidate;
         cell->update();

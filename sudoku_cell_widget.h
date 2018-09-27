@@ -30,9 +30,6 @@ class SudokuCellWidget final : public QWidget {
     int m_digit = 0;
     std::bitset<9> m_candidates = {};
 
-    //QColor m_bg_color = BG_DEFAULT;
-    //QColor m_fg_color = FG_DEFAULT;
-
     public:
         bool m_is_focused = false;
         bool m_is_highlighted = false;
@@ -42,7 +39,7 @@ class SudokuCellWidget final : public QWidget {
         auto bg_color() const -> QColor;
 
     public:
-        explicit SudokuCellWidget(int size, int cell_nr, SudokuGridWidget *parent = 0);
+        explicit SudokuCellWidget(int cell_nr, SudokuGridWidget *parent = 0);
         auto paintEvent(QPaintEvent *event) -> void override;
         // TODO: Is this necessary?
         auto sizeHint() const -> QSize override;

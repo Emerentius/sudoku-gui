@@ -14,14 +14,12 @@
 #include "sudoku_cell_widget.h"
 #include "sudoku_grid_widget.h"
 
-SudokuCellWidget::SudokuCellWidget(int size, int cell_nr, SudokuGridWidget *parent) :
+SudokuCellWidget::SudokuCellWidget(int cell_nr, SudokuGridWidget *parent) :
     QWidget(parent),
     m_grid(parent),
     m_cell_nr(cell_nr)
 {
     this->setFocusPolicy(Qt::FocusPolicy::ClickFocus);
-    this->setFixedWidth(size);
-    this->setFixedHeight(size);
 }
 
 auto SudokuCellWidget::is_clue() const -> bool {

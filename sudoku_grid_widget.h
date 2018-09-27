@@ -34,9 +34,8 @@ class SudokuGridWidget final : public QFrame {
         explicit SudokuGridWidget(QWidget *parent = 0);
 
         auto sudoku() -> Sudoku;
-        auto generate_major_lines() -> void;
-        auto generate_minor_lines() -> void;
-        auto generate_cells() -> void;
+        auto initialize_cells() -> void;
+        auto generate_layout() -> void;
         auto set_clues() -> void;
 
         auto compute_candidates() -> void;
