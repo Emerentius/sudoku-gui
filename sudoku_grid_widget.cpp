@@ -24,7 +24,7 @@ auto minor_line(QWidget* parent, QFrame::Shape shape) -> QFrame* {
     return frame;
 }
 
-SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QFrame(parent) {
+SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QuadraticQFrame(parent) {
     this->initialize_cells();
     this->generate_layout();
 

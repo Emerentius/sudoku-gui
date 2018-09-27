@@ -2,6 +2,7 @@
 
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
 #include <QFrame>
+#include "quadratic_qframe.h"
 
 class SudokuCellWidget;
 
@@ -11,7 +12,7 @@ enum class Direction {
 
 using Candidates = std::array<uint16_t, 81>;
 
-class SudokuGridWidget final : public QFrame {
+class SudokuGridWidget final : public QuadraticQFrame {
     Q_OBJECT
 
     std::array<SudokuCellWidget*, 81> m_cells;
