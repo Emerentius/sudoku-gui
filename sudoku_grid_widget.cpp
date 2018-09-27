@@ -47,7 +47,7 @@ SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QFrame(parent) {
 
 auto SudokuGridWidget::initialize_cells() -> void {
     for (int n_cell = 0; n_cell < 81; n_cell++) {
-        m_cells[n_cell] = new SudokuCellWidget(n_cell);
+        m_cells[n_cell] = new SudokuCellWidget(n_cell, this);
     }
 }
 
