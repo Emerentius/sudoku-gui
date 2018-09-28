@@ -243,18 +243,52 @@ auto SudokuGridWidget::update_highlights() -> void {
 }
 
 auto SudokuGridWidget::hint() -> void {
-    auto solver = strategy_solver_new(this->sudoku());
-    auto strategies = std::array<Strategy, 1>({Strategy::NakedSingles});
-    auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
-    auto deductions = results.deductions;
-    auto n_deductions = deductions_len(deductions);
-    if (n_deductions == 0) {
-        return; // nothing found
+    if (!m_in_hint_mode) {
+        // find a naked single
+        auto solver = strategy_solver_new(this->sudoku());
+        auto strategies = std::array<Strategy, 1>({Strategy::NakedSingles});
+        auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
+        auto deductions = results.deductions;
+        auto n_deductions = deductions_len(deductions);
+        if (n_deductions == 0) {
+            return; // nothing found, don't change anything
+        }
+
+        // find and mark cell
+        // also give a lighter highlight to all cells in the same line or col
+        // to guide the eyes
+        auto first = deductions_get(deductions, 0);
+        auto result = deduction_results(first);
+        if (deduction_result_len(result) != 0) {
+            auto entry = deduction_result_get_forced_entry(result);
+            auto cell = entry.cell;
+            auto row = cell / 9;
+            auto col = cell % 9;
+
+            for (int row = 0; row < 9; row++) {
+                m_cells[row*9+col]->m_hint_mode = HintHighlight::Weak;
+            }
+            for (int col = 0; col < 9; col++) {
+                m_cells[row*9+col]->m_hint_mode = HintHighlight::Weak;
+            }
+            m_cells[cell]->m_hint_mode = HintHighlight::Strong;
+        }
+
+        // update the cells or nothing happens
+        m_in_hint_mode = true;
+        for (auto *cell : m_cells) {
+            cell->m_in_hint_mode = true;
+            cell->update();
+        }
+
+    } else {
+        // reset out of hint mode
+        m_in_hint_mode = false;
+        for (auto *cell : m_cells) {
+            cell->m_in_hint_mode = false;
+            cell->m_hint_mode = HintHighlight::None;
+            cell->update();
+        }
     }
-    auto first = deductions_get(deductions, 0);
-    auto result = deduction_results(first);
-    if (deduction_result_len(result) != 0) {
-        auto entry = deduction_result_get_forced_entry(result);
-        this->insert_entry(entry);
-    }
+
 }

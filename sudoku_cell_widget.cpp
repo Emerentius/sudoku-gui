@@ -33,27 +33,57 @@ auto SudokuCellWidget::fg_color() const -> QColor {
         return FG_DEFAULT;
     }
 }
+
 auto SudokuCellWidget::bg_color() const -> QColor {
+    if (m_in_hint_mode) {
+        switch (m_hint_mode) {
+            case HintHighlight::Strong: return BG_HIGHLIGHTED_HINT_STRONG;
+            case HintHighlight::Weak:   return BG_HIGHLIGHTED_HINT_WEAK;
+            case HintHighlight::None:   return BG_DEFAULT;
+        }
+    }
+
     if (m_is_focused) {
         return BG_FOCUSED;
-    } else if (m_is_highlighted) {
-        return BG_HIGHLIGHTED;
-    } else {
-        return BG_DEFAULT;
     }
+
+    if (m_is_highlighted) {
+        return BG_HIGHLIGHTED;
+    }
+    return BG_DEFAULT;
+}
+
+auto SudokuCellWidget::bg_color_inner() const -> QColor {
+    if (m_in_hint_mode) {
+        return bg_color();
+    }
+
+    if (m_is_highlighted) {
+        return BG_HIGHLIGHTED;
+    }
+    if (m_is_focused) {
+        return BG_FOCUSED;
+    }
+    return BG_DEFAULT;
 }
 
 auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QBrush(this->bg_color()));
+
+    // draw background
+    auto bg = this->bg_color();
+    painter.setBrush(QBrush(bg));
     painter.drawRect(event->rect());
 
-    // draw the highlight color over the focus background
-    // so neither is hidden
-    if (m_is_focused && m_is_highlighted) {
-        painter.setBrush(QBrush(BG_HIGHLIGHTED));
+    // draw inner, rounded square over background
+    // if multiple highlights exist on a cell
+    // do so conditionally because there is a black 1px border
+    // drawn around it
+    auto bg_inner = this->bg_color_inner();
+    if (bg != bg_inner) {
+        painter.setBrush(QBrush(bg_inner));
         auto ring_width = this->width() / 12;
         auto low = ring_width;
         auto high = this->width() - 2*low;
@@ -178,6 +208,10 @@ auto SudokuCellWidget::clear() -> void {
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
+    if (m_in_hint_mode) {
+        return;
+    }
+
     if (
         (event->modifiers() & Qt::KeyboardModifier::ControlModifier) != 0
         && event->key() == Qt::Key_Z

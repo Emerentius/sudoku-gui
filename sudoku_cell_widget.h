@@ -13,6 +13,10 @@
 
 class SudokuGridWidget;
 
+enum class HintHighlight {
+    Strong, Weak, None
+};
+
 class SudokuCellWidget final : public QWidget {
     Q_OBJECT
 
@@ -21,6 +25,8 @@ class SudokuCellWidget final : public QWidget {
     const QColor BG_DEFAULT = QColor(255, 255, 255);     // white
     const QColor BG_FOCUSED = QColor(172, 172, 255);       // light blue
     const QColor BG_HIGHLIGHTED = QColor(255, 153, 153);   // light red
+    const QColor BG_HIGHLIGHTED_HINT_WEAK = QColor(217, 217, 217);   // light grey
+    const QColor BG_HIGHLIGHTED_HINT_STRONG = QColor(140, 140, 140);   // strong grey
 
     SudokuGridWidget *m_grid;
     int m_cell_nr;
@@ -33,10 +39,13 @@ class SudokuCellWidget final : public QWidget {
     public:
         bool m_is_focused = false;
         bool m_is_highlighted = false;
+        bool m_in_hint_mode = false;
+        HintHighlight m_hint_mode = HintHighlight::None;
 
     private:
         auto fg_color() const -> QColor;
         auto bg_color() const -> QColor;
+        auto bg_color_inner() const -> QColor;
 
     public:
         explicit SudokuCellWidget(int cell_nr, SudokuGridWidget *parent = 0);

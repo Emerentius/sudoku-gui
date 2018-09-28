@@ -18,6 +18,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
     std::array<SudokuCellWidget*, 81> m_cells;
     std::vector<Candidates> m_candidates;
     int m_highlighted_digit = 0; // 1-9, 0 for no highlight
+    bool m_in_hint_mode = false;
 
     // TODO: make private again
     public:
