@@ -41,6 +41,10 @@ MainWindow::MainWindow(QWidget *parent) :
             [this, digit]() { this->ui->sudoku_grid->highlight_digit(digit); }
         );
     }
+
+    // hook hint button up to hint slot
+    connect(ui->hint_button, &QPushButton::clicked,
+            ui->sudoku_grid, &SudokuGridWidget::hint);
 }
 
 MainWindow::~MainWindow()

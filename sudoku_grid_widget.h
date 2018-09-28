@@ -49,4 +49,5 @@ class SudokuGridWidget final : public QuadraticQFrame {
 
     public slots:
         void highlight_digit(int digit);
+        void hint();
 };

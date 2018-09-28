@@ -241,3 +241,20 @@ auto SudokuGridWidget::update_highlights() -> void {
         cell->update();
     }
 }
+
+auto SudokuGridWidget::hint() -> void {
+    auto solver = strategy_solver_new(this->sudoku());
+    auto strategies = std::array<Strategy, 1>({Strategy::NakedSingles});
+    auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
+    auto deductions = results.deductions;
+    auto n_deductions = deductions_len(deductions);
+    if (n_deductions == 0) {
+        return; // nothing found
+    }
+    auto first = deductions_get(deductions, 0);
+    auto result = deduction_results(first);
+    if (deduction_result_len(result) != 0) {
+        auto entry = deduction_result_get_forced_entry(result);
+        this->insert_entry(entry);
+    }
+}
