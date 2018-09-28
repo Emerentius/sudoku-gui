@@ -45,9 +45,7 @@ ExternalProject_Add(
     sudoku_ffi
     PREFIX sudoku_ffi
     GIT_REPOSITORY https://github.com/emerentius/sudoku-ffi
-    GIT_TAG origin/strategy_solver # this is a branch, not a tag
-                                   # for development purposes, this isn't pinned
-                                   # to a specific commit
+    GIT_TAG f1b84eaf903fdccf4c59b5f6f73295238151ffce
     BUILD_IN_SOURCE 1
     BUILD_COMMAND "${Cargo_EXECUTABLE}" build "${RUST_BUILD_FLAG}"
     CONFIGURE_COMMAND ""
