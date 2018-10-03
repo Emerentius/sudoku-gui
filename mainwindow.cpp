@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     QToolButton *buttons[] = {
+        ui->digit_button_off,
         ui->digit_button_1,
         ui->digit_button_2,
         ui->digit_button_3,
@@ -25,8 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // group actions so they uncheck each other
     auto action_group = new QActionGroup(this);
 
-    for (int digit = 1; digit < 10; digit++) {
-        auto button = buttons[digit-1];
+    for (int digit = 0; digit < 10; digit++) {
+        auto button = buttons[digit];
         auto action = new QAction(action_group);
 
         action->setCheckable(true);
