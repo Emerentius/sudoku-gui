@@ -90,7 +90,6 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
         painter.drawRoundedRect(QRect(low, low, high, high), 25, 25, Qt::SizeMode::RelativeSize);
     }
 
-    painter.setPen(this->fg_color());
     auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
 
     auto const alignment = Qt::AlignCenter;
@@ -127,8 +126,36 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
                 text += "\n";
             }
         }
+
+        // draw a circle in the place of the digits before the text is drawn
+        // TODO: clean up, use the layout system to offload the positioning to Qt
+        painter.setPen(Qt::NoPen);
+        auto size = this->size().width(); // cell is quadratic
+        auto center = QPoint(size / 2, size / 2);
+        int offset = size * 1.25 / 4;
+
+        int digit = 0;
+        for (int row_offset = -1; row_offset <= 1; row_offset++) {
+            for (int col_offset = -1; col_offset <= 1; col_offset++) {
+                auto digit_offset = QPoint(col_offset * offset, row_offset * offset);
+                auto digit_pos = center + digit_offset;
+                auto radius = size * 9 / 64; // a bit more than 1/4 / 2, the size of the font
+
+                if (m_candidates_highlighted[digit]) {
+                    painter.setBrush(QBrush(DIGIT_HIGHLIGHTED));
+                    painter.drawEllipse(digit_pos, radius, radius);
+                }
+
+                if (m_candidates_highlighted_conflict[digit]) {
+                    painter.setBrush(QBrush(DIGIT_HIGHLIGHTED_CONFLICT));
+                    painter.drawEllipse(digit_pos, radius, radius);
+                }
+                digit++;
+            }
+        }
     }
 
+    painter.setPen(this->fg_color());
     painter.setFont(font);
 
     // TODO: The additional alignment flags may be unnecessary
@@ -256,7 +283,7 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     if (one <= event->key() && event->key() <= nine) {
         auto num = event->key() - Qt::Key_0;
         //this->try_set_entry(num);
-        m_grid->insert_entry(Entry {
+        m_grid->insert_candidate(Candidate {
             cell: m_cell_nr,
             num: num,
         });
@@ -269,7 +296,7 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
             int pos = std::distance(second_row.begin(), key_ptr);
             auto is_possible = m_candidates[pos];
             m_grid->set_candidate(
-                Entry {
+                Candidate {
                     cell: m_cell_nr,
                     num: pos+1,
                 },
@@ -278,4 +305,19 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
         }
     }
     this->update();
+}
+
+auto SudokuCellWidget::reset_highlights() -> void {
+    m_candidates_highlighted = {};
+    m_candidates_highlighted_conflict = {};
+    m_is_highlighted = false;
+    m_hint_mode = HintHighlight::None;
+}
+
+auto SudokuCellWidget::set_digit_highlight(int digit, bool is_conflict) -> void {
+    if (is_conflict) {
+        m_candidates_highlighted_conflict[digit] = true;
+    } else {
+        m_candidates_highlighted[digit] = true;
+    }
 }

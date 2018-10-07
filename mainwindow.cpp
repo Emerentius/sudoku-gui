@@ -43,9 +43,46 @@ MainWindow::MainWindow(QWidget *parent) :
         );
     }
 
+    // associate hint buttons with their respective strategies
+    // TODO: store this somewhere, possibly in a new widget for the strategy selector
+    //       and clean up on destruction
+    auto button_strategies = std::array<std::pair<QToolButton*, Strategy>, 12>({
+        std::make_pair(ui->strategy_naked_singles, Strategy::NakedSingles),
+        std::make_pair(ui->strategy_hidden_singles, Strategy::HiddenSingles),
+
+        std::make_pair(ui->strategy_locked_candidates, Strategy::LockedCandidates),
+
+        std::make_pair(ui->strategy_naked_pairs, Strategy::NakedPairs),
+        std::make_pair(ui->strategy_naked_triples, Strategy::NakedTriples),
+        std::make_pair(ui->strategy_naked_quads, Strategy::NakedQuads),
+
+        std::make_pair(ui->strategy_hidden_pairs, Strategy::HiddenPairs),
+        std::make_pair(ui->strategy_hidden_triples, Strategy::HiddenTriples),
+        std::make_pair(ui->strategy_hidden_quads, Strategy::HiddenQuads),
+
+        std::make_pair(ui->strategy_x_wing, Strategy::XWing),
+        std::make_pair(ui->strategy_swordfish, Strategy::Swordfish),
+        std::make_pair(ui->strategy_jellyfish, Strategy::Jellyfish),
+    });
+
+    auto hint_strategies = [=]() {
+        std::vector<Strategy> strategies;
+
+        for (auto &pair : button_strategies) {
+            auto *button = pair.first;
+            auto strategy = pair.second;
+
+            if (button->isChecked()) {
+                strategies.push_back(strategy);
+            }
+        }
+
+        ui->sudoku_grid->hint(strategies);
+    };
+
     // hook hint button up to hint slot
     connect(ui->hint_button, &QPushButton::clicked,
-            ui->sudoku_grid, &SudokuGridWidget::hint);
+            hint_strategies);
 }
 
 MainWindow::~MainWindow()

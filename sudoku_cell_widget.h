@@ -10,12 +10,9 @@
 #include <QPaintEvent>
 #include <QFocusEvent>
 #include <QKeyEvent>
+#include "hint_highlight.h"
 
 class SudokuGridWidget;
-
-enum class HintHighlight {
-    Strong, Weak, None
-};
 
 class SudokuCellWidget final : public QWidget {
     Q_OBJECT
@@ -27,6 +24,8 @@ class SudokuCellWidget final : public QWidget {
     const QColor BG_HIGHLIGHTED = QColor(255, 153, 153);   // light red
     const QColor BG_HIGHLIGHTED_HINT_WEAK = QColor(217, 217, 217);   // light grey
     const QColor BG_HIGHLIGHTED_HINT_STRONG = QColor(140, 140, 140);   // strong grey
+    const QColor DIGIT_HIGHLIGHTED = QColor(15, 225, 15);   // green
+    const QColor DIGIT_HIGHLIGHTED_CONFLICT = QColor(225, 15, 15);   // red
 
     SudokuGridWidget *m_grid;
     int m_cell_nr;
@@ -35,6 +34,8 @@ class SudokuCellWidget final : public QWidget {
     bool m_is_clue = false;
     int m_digit = 0;
     std::bitset<9> m_candidates = {};
+    std::bitset<9> m_candidates_highlighted = {};
+    std::bitset<9> m_candidates_highlighted_conflict = {};
 
     public:
         bool m_is_focused = false;
@@ -59,6 +60,9 @@ class SudokuCellWidget final : public QWidget {
         auto keyPressEvent(QKeyEvent *event) -> void override;
 
         auto is_clue() const -> bool;
+
+        auto reset_highlights() -> void;
+        auto set_digit_highlight(int digit, bool is_conflict) -> void;
 
     public slots:
         void set_clue(int digit);

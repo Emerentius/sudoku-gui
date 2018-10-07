@@ -206,24 +206,24 @@ auto SudokuGridWidget::undo() -> bool {
     }
 }
 
-auto SudokuGridWidget::insert_entry(Entry entry) -> void {
+auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
     this->push_savepoint();
 
     auto& sudoku = this->current_sudoku()._0;
-    sudoku[entry.cell] = entry.num;
+    sudoku[candidate.cell] = candidate.num;
 
-    m_cells[entry.cell]->try_set_entry(entry.num);
+    m_cells[candidate.cell]->try_set_entry(candidate.num);
     this->recompute_candidates();
 }
 
-auto SudokuGridWidget::set_candidate(Entry entry, bool is_possible) -> void {
+auto SudokuGridWidget::set_candidate(Candidate candidate, bool is_possible) -> void {
     this->push_savepoint();
 
     auto& cands = this->current_candidates();
-    auto& cell_cands = cands[entry.cell];
-    cell_cands &= ~( 1 << entry.num - 1);
-    cell_cands |= (uint16_t) is_possible << entry.num - 1;
-    m_cells[entry.cell]->try_set_possibility(entry.num, is_possible);
+    auto& cell_cands = cands[candidate.cell];
+    cell_cands &= ~( 1 << candidate.num - 1);
+    cell_cands |= (uint16_t) is_possible << candidate.num - 1;
+    m_cells[candidate.cell]->try_set_possibility(candidate.num, is_possible);
     this->update_highlights();
 }
 
@@ -242,11 +242,10 @@ auto SudokuGridWidget::update_highlights() -> void {
     }
 }
 
-auto SudokuGridWidget::hint() -> void {
+auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
     if (!m_in_hint_mode) {
         // find a naked single
         auto solver = strategy_solver_new(this->sudoku());
-        auto strategies = std::array<Strategy, 1>({Strategy::NakedSingles});
         auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
         auto deductions = results.deductions;
         auto n_deductions = deductions_len(deductions);
@@ -257,21 +256,46 @@ auto SudokuGridWidget::hint() -> void {
         // find and mark cell
         // also give a lighter highlight to all cells in the same line or col
         // to guide the eyes
-        auto first = deductions_get(deductions, 0);
-        auto result = deduction_results(first);
-        if (deduction_result_len(result) != 0) {
-            auto entry = deduction_result_get_forced_entry(result);
-            auto cell = entry.cell;
-            auto row = cell / 9;
-            auto col = cell % 9;
+        auto deduction = deductions_get(deductions, 0);
 
-            for (int row = 0; row < 9; row++) {
-                m_cells[row*9+col]->m_hint_mode = HintHighlight::Weak;
+        switch (deduction.tag) {
+            case DeductionTag::NakedSingle: {
+                auto candidate = deduction.data.naked_single.candidate;
+                auto cell = candidate.cell;
+                auto row = cell / 9;
+                auto col = cell % 9;
+                this->set_house_highlight(row, HintHighlight::Weak);
+                this->set_house_highlight(col+9, HintHighlight::Weak);
+                this->set_cell_highlight(cell, HintHighlight::Strong);
+
+                m_cells[cell]->set_digit_highlight(candidate.num-1, false);
+                break;
             }
-            for (int col = 0; col < 9; col++) {
-                m_cells[row*9+col]->m_hint_mode = HintHighlight::Weak;
+            case DeductionTag::HiddenSingle: {
+                auto data = deduction.data.hidden_single;
+                auto candidate = data.candidate;
+                auto house = 0;
+                switch (data.house_type) {
+                    case HouseType::Row: {
+                        house = candidate.cell / 9;
+                        break;
+                    }
+                    case HouseType::Col: {
+                        house = candidate.cell % 9 + 9;
+                        break;
+                    }
+                    case HouseType::Block: {
+                        auto band = candidate.cell / 27;
+                        auto stack = candidate.cell % 9 / 3;
+                        house = band * 3 + stack + 18;
+                        break;
+                    }
+                }
+                this->set_house_highlight(house, HintHighlight::Weak);
+                this->set_cell_highlight(candidate.cell, HintHighlight::Strong);
+                m_cells[candidate.cell]->set_digit_highlight(candidate.num-1, false);
+                break;
             }
-            m_cells[cell]->m_hint_mode = HintHighlight::Strong;
         }
 
         // update the cells or nothing happens
@@ -286,9 +310,43 @@ auto SudokuGridWidget::hint() -> void {
         m_in_hint_mode = false;
         for (auto *cell : m_cells) {
             cell->m_in_hint_mode = false;
-            cell->m_hint_mode = HintHighlight::None;
+            cell->reset_highlights();
             cell->update();
         }
     }
 
+}
+
+auto SudokuGridWidget::set_house_highlight(int house, HintHighlight highlight) -> void {
+    assert(house < 27);
+    if (house < 9) {
+        // row
+        auto limit = 9 * house + 9;
+        for (int cell = house * 9; cell < limit; cell++) {
+            set_cell_highlight(cell, highlight);
+        }
+    } else if (house < 18) {
+        // col
+        for (int cell = house - 9; cell < 81; cell += 9) {
+            set_cell_highlight(cell, highlight);
+        }
+    } else {
+        // block
+        auto block = house - 18;
+        auto band = block / 3;
+        auto stack = block % 3;
+        auto first_row = band * 3;
+        auto first_col = stack * 3;
+        for (int row = first_row; row < first_row + 3; row++) {
+            for (int col = first_col; col < first_col + 3; col++) {
+                auto cell = row*9 + col;
+                set_cell_highlight(cell, highlight);
+            }
+        }
+    }
+
+}
+auto SudokuGridWidget::set_cell_highlight(int cell, HintHighlight highlight) -> void {
+    assert(cell < 81);
+    m_cells[cell]->m_hint_mode = highlight;
 }

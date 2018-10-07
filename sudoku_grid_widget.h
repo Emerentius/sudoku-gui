@@ -3,6 +3,7 @@
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
 #include <QFrame>
 #include "quadratic_qframe.h"
+#include "hint_highlight.h"
 
 class SudokuCellWidget;
 
@@ -36,6 +37,9 @@ class SudokuGridWidget final : public QuadraticQFrame {
         auto set_clues() -> void;
         auto compute_candidates() -> void;
 
+        auto set_house_highlight(int, HintHighlight) -> void;
+        auto set_cell_highlight(int, HintHighlight) -> void;
+
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
 
@@ -44,11 +48,11 @@ class SudokuGridWidget final : public QuadraticQFrame {
 
         auto move_focus(int current_cell, Direction direction) -> void;
 
-        auto insert_entry(Entry entry) -> void;
-        auto set_candidate(Entry entry, bool is_possible) -> void;
+        auto insert_candidate(Candidate candidate) -> void;
+        auto set_candidate(Candidate candidate, bool is_possible) -> void;
         auto undo() -> bool;
 
     public slots:
         void highlight_digit(int digit);
-        void hint();
+        void hint(std::vector<Strategy> strategies);
 };
