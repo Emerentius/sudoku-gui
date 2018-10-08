@@ -341,6 +341,36 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             }
             break;
         }
+        case DeductionTag::BasicFish: {
+            auto data = deduction.data.basic_fish;
+            auto lines = std::bitset<18>(data.lines);
+            auto positions = std::bitset<9>(data.positions);
+            auto digit = data.digit;
+
+            for (int line = 0; line < 18; line++) {
+                if (!lines[line]) {
+                    continue;
+                }
+                this->set_house_highlight(line, HintHighlight::Weak);
+                for (int pos = 0; pos < 9; pos++) {
+                    if (!positions[pos]) {
+                        continue;
+                    }
+                    auto cell_nr = cell_at_position(line, pos);
+                    this->set_cell_highlight(cell_nr, HintHighlight::Strong);
+                    auto *cell = m_cells[cell_nr];
+                    cell->set_digit_highlight(digit-1, false);
+                }
+            }
+
+            auto conflicts = data.conflicts;
+            auto len = conflicts_len(conflicts);
+            for (int i = 0; i < len; i++) {
+                auto conflict = conflicts_get(conflicts, i);
+                m_cells[conflict.cell]->set_digit_highlight(conflict.num-1, true);
+            }
+            break;
+        }
     }
 
     // update the cells or nothing happens

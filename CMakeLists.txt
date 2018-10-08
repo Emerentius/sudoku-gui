@@ -45,7 +45,7 @@ ExternalProject_Add(
     sudoku_ffi
     PREFIX sudoku_ffi
     GIT_REPOSITORY https://github.com/emerentius/sudoku-ffi
-    GIT_TAG 531e137cb5dd4b82709b0fd5d0465c3d62819add
+    GIT_TAG 32807ed7def36f1e7e5d6721f040f909dab31f97
     BUILD_IN_SOURCE 1
     BUILD_COMMAND "${Cargo_EXECUTABLE}" build "${RUST_BUILD_FLAG}"
     CONFIGURE_COMMAND ""
