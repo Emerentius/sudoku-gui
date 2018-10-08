@@ -141,11 +141,18 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
                 auto digit_pos = center + digit_offset;
                 auto radius = size * 9 / 64; // a bit more than 1/4 / 2, the size of the font
 
-                if (m_candidates_highlighted[digit]) {
-                    painter.setBrush(QBrush(DIGIT_HIGHLIGHTED));
-                    painter.drawEllipse(digit_pos, radius, radius);
+                // strategy results don't always contain the full list of candidates
+                // only 2 sets of some position and some digits
+                // we check here so we don't highlight empty places
+                if (m_candidates[digit]) {
+                    if (m_candidates_highlighted[digit]) {
+                        painter.setBrush(QBrush(DIGIT_HIGHLIGHTED));
+                        painter.drawEllipse(digit_pos, radius, radius);
+                    }
                 }
 
+                // conflicts are returned separately as full lists
+                // because they are required for the solver anyway
                 if (m_candidates_highlighted_conflict[digit]) {
                     painter.setBrush(QBrush(DIGIT_HIGHLIGHTED_CONFLICT));
                     painter.drawEllipse(digit_pos, radius, radius);

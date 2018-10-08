@@ -1,28 +1,14 @@
 #include <assert.h>
 #include <QGridLayout>
+#include <QDebug>
 #include "sudoku_grid_widget.h"
 #include "sudoku_cell_widget.h"
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
+#include "sudoku_helper.h"
 
 const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
 
-auto line(QWidget *parent, QFrame::Shape shape) -> QFrame* {
-    auto frame = new QFrame(parent);
-    auto size_policy = QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
-    frame->setSizePolicy(size_policy);
-
-    frame->setFrameShape(shape);
-    frame->setFrameShadow(QFrame::Plain);
-    frame->setLineWidth(MAJOR_LINE_SIZE);
-    return frame;
-}
-
-auto minor_line(QWidget* parent, QFrame::Shape shape) -> QFrame* {
-    auto frame = line(parent, shape);
-    frame->setLineWidth(MINOR_LINE_SIZE);
-    return frame;
-}
 
 SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QuadraticQFrame(parent) {
     this->initialize_cells();
@@ -243,69 +229,7 @@ auto SudokuGridWidget::update_highlights() -> void {
 }
 
 auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
-    if (!m_in_hint_mode) {
-        // find a naked single
-        auto solver = strategy_solver_new(this->sudoku());
-        auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
-        auto deductions = results.deductions;
-        auto n_deductions = deductions_len(deductions);
-        if (n_deductions == 0) {
-            return; // nothing found, don't change anything
-        }
-
-        // find and mark cell
-        // also give a lighter highlight to all cells in the same line or col
-        // to guide the eyes
-        auto deduction = deductions_get(deductions, 0);
-
-        switch (deduction.tag) {
-            case DeductionTag::NakedSingle: {
-                auto candidate = deduction.data.naked_single.candidate;
-                auto cell = candidate.cell;
-                auto row = cell / 9;
-                auto col = cell % 9;
-                this->set_house_highlight(row, HintHighlight::Weak);
-                this->set_house_highlight(col+9, HintHighlight::Weak);
-                this->set_cell_highlight(cell, HintHighlight::Strong);
-
-                m_cells[cell]->set_digit_highlight(candidate.num-1, false);
-                break;
-            }
-            case DeductionTag::HiddenSingle: {
-                auto data = deduction.data.hidden_single;
-                auto candidate = data.candidate;
-                auto house = 0;
-                switch (data.house_type) {
-                    case HouseType::Row: {
-                        house = candidate.cell / 9;
-                        break;
-                    }
-                    case HouseType::Col: {
-                        house = candidate.cell % 9 + 9;
-                        break;
-                    }
-                    case HouseType::Block: {
-                        auto band = candidate.cell / 27;
-                        auto stack = candidate.cell % 9 / 3;
-                        house = band * 3 + stack + 18;
-                        break;
-                    }
-                }
-                this->set_house_highlight(house, HintHighlight::Weak);
-                this->set_cell_highlight(candidate.cell, HintHighlight::Strong);
-                m_cells[candidate.cell]->set_digit_highlight(candidate.num-1, false);
-                break;
-            }
-        }
-
-        // update the cells or nothing happens
-        m_in_hint_mode = true;
-        for (auto *cell : m_cells) {
-            cell->m_in_hint_mode = true;
-            cell->update();
-        }
-
-    } else {
+    if (m_in_hint_mode) {
         // reset out of hint mode
         m_in_hint_mode = false;
         for (auto *cell : m_cells) {
@@ -313,6 +237,117 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             cell->reset_highlights();
             cell->update();
         }
+        return;
+    }
+
+    // find a naked single
+    auto solver = strategy_solver_new(this->sudoku());
+    auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
+    auto deductions = results.deductions;
+    auto n_deductions = deductions_len(deductions);
+
+    qDebug() << n_deductions << "\n";
+    if (n_deductions == 0) {
+        return; // nothing found, don't change anything
+    }
+
+    // find and mark cell
+    // also give a lighter highlight to all cells in the same line or col
+    // to guide the eyes
+    auto deduction = deductions_get(deductions, 0);
+
+    qDebug() << (int) deduction.tag << "\n";
+
+    switch (deduction.tag) {
+        case DeductionTag::NakedSingle: {
+            auto candidate = deduction.data.naked_single.candidate;
+            auto cell = candidate.cell;
+            auto row = cell / 9;
+            auto col = cell % 9;
+            this->set_house_highlight(row, HintHighlight::Weak);
+            this->set_house_highlight(col+9, HintHighlight::Weak);
+            this->set_cell_highlight(cell, HintHighlight::Strong);
+
+            m_cells[cell]->set_digit_highlight(candidate.num-1, false);
+            break;
+        }
+        case DeductionTag::HiddenSingle: {
+            auto data = deduction.data.hidden_single;
+            auto candidate = data.candidate;
+            auto house = house_of_cell(candidate.cell, data.house_type);
+            this->set_house_highlight(house, HintHighlight::Weak);
+            this->set_cell_highlight(candidate.cell, HintHighlight::Strong);
+            m_cells[candidate.cell]->set_digit_highlight(candidate.num-1, false);
+            break;
+        }
+        case DeductionTag::NakedSubset: {
+            auto data = deduction.data.naked_subsets;
+            this->set_house_highlight(data.house, HintHighlight::Weak);
+            auto digits = std::bitset<9>(data.digits);
+            auto positions = std::bitset<9>(data.positions);
+            for (int pos = 0; pos < 9; pos++) {
+                if (!positions[pos]) {
+                    continue;
+                }
+                auto cell_nr = cell_at_position(data.house, pos);
+                this->set_cell_highlight(cell_nr, HintHighlight::Strong);
+
+                auto *cell = m_cells[cell_nr];
+                for (int digit = 0; digit < 9; digit++) {
+                    if (!digits[digit]) {
+                        continue;
+                    }
+                    cell->set_digit_highlight(digit, false);
+                }
+            }
+
+            auto conflicts = data.conflicts;
+            auto len = conflicts_len(conflicts);
+
+            for (int i = 0; i < len; i++) {
+                auto conflict = conflicts_get(conflicts, i);
+                m_cells[conflict.cell]->set_digit_highlight(conflict.num - 1, true);
+            }
+            break;
+        }
+        // straight copy from naked subsets => deduplicate
+        case DeductionTag::HiddenSubset: {
+            auto data = deduction.data.hidden_subsets;
+            this->set_house_highlight(data.house, HintHighlight::Weak);
+            auto digits = std::bitset<9>(data.digits);
+            auto positions = std::bitset<9>(data.positions);
+            for (int pos = 0; pos < 9; pos++) {
+                if (!positions[pos]) {
+                    continue;
+                }
+                auto cell_nr = cell_at_position(data.house, pos);
+                this->set_cell_highlight(cell_nr, HintHighlight::Strong);
+
+                auto *cell = m_cells[cell_nr];
+                for (int digit = 0; digit < 9; digit++) {
+                    if (!digits[digit]) {
+                        continue;
+                    }
+                    cell->set_digit_highlight(digit, false);
+                }
+            }
+
+            auto conflicts = data.conflicts;
+            auto len = conflicts_len(conflicts);
+
+            for (int i = 0; i < len; i++) {
+                auto conflict = conflicts_get(conflicts, i);
+                m_cells[conflict.cell]->set_digit_highlight(conflict.num - 1, true);
+            }
+            break;
+        }
+    }
+
+    // update the cells or nothing happens
+    m_in_hint_mode = true;
+    for (auto *cell : m_cells) {
+        cell->m_in_hint_mode = true;
+        cell->update();
     }
 
 }
