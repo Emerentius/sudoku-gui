@@ -28,6 +28,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
     private:
         auto current_sudoku() -> Sudoku&;
         auto current_candidates() -> Candidates&;
+        auto grid_state() const -> GridState;
         auto push_savepoint() -> void;
         auto pop_savepoint() -> void;
         auto update_cells() -> void;
@@ -43,7 +44,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
 
-        auto sudoku() -> Sudoku;
+        auto sudoku() const -> Sudoku;
         auto recompute_candidates() -> void;
 
         auto move_focus(int current_cell, Direction direction) -> void;

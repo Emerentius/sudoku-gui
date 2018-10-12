@@ -45,7 +45,7 @@ ExternalProject_Add(
     sudoku_ffi
     PREFIX sudoku_ffi
     GIT_REPOSITORY https://github.com/emerentius/sudoku-ffi
-    GIT_TAG 32807ed7def36f1e7e5d6721f040f909dab31f97
+    GIT_TAG 94e89286e8dcc1eaf86b1a93609edf3b6fdd244f
     BUILD_IN_SOURCE 1
     BUILD_COMMAND "${Cargo_EXECUTABLE}" build "${RUST_BUILD_FLAG}"
     CONFIGURE_COMMAND ""
@@ -73,6 +73,6 @@ add_executable(sudoku-gui ${SRCS})
 add_dependencies(sudoku-gui sudoku_ffi)
 target_link_libraries(sudoku-gui ${Libs})
 set_target_properties(sudoku-gui PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )

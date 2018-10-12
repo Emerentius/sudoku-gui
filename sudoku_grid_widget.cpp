@@ -80,8 +80,25 @@ auto SudokuGridWidget::current_candidates() -> Candidates& {
     return m_candidates.back();
 }
 
-auto SudokuGridWidget::sudoku() -> Sudoku {
+auto SudokuGridWidget::sudoku() const -> Sudoku {
     return m_sudoku.back();
+}
+
+auto SudokuGridWidget::grid_state() const -> GridState {
+    GridState grid_state;
+    auto sudoku = this->sudoku();
+    for (int cell = 0; cell < 81; cell++) {
+        auto digit = sudoku._0[cell];
+        auto &cell_state = grid_state.grid[cell];
+        if (digit != 0) {
+            cell_state.tag = CellState::Tag::Digit;
+            cell_state.digit._0 = digit;
+        } else {
+            cell_state.tag = CellState::Tag::Candidates;
+            cell_state.candidates._0 = m_candidates.back()[cell];
+        }
+    }
+    return grid_state;
 }
 
 // Only for the initial round!
@@ -240,8 +257,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
         return;
     }
 
-    // find a naked single
-    auto solver = strategy_solver_new(this->sudoku());
+    auto solver = strategy_solver_from_grid_state(this->grid_state());
     auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
     auto deductions = results.deductions;
     auto n_deductions = deductions_len(deductions);
