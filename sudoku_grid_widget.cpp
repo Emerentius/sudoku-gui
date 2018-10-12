@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <optional>
 #include <QGridLayout>
 #include <QDebug>
 #include "sudoku_grid_widget.h"
@@ -247,6 +248,21 @@ auto SudokuGridWidget::update_highlights() -> void {
 
 auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
     if (m_in_hint_mode) {
+        // insert the results of the hint
+        if (m_hint_candidate.has_value()) {
+            this->insert_candidate(*m_hint_candidate);
+            m_hint_candidate = std::nullopt;
+        }
+        if (m_hint_conflicts.has_value()) {
+            auto len = conflicts_len(*m_hint_conflicts);
+
+            for (int i = 0; i < len; i++) {
+                auto conflict = conflicts_get(*m_hint_conflicts, i);
+                this->set_candidate(conflict, false);
+            }
+            m_hint_conflicts = std::nullopt;
+        }
+
         // reset out of hint mode
         m_in_hint_mode = false;
         for (auto *cell : m_cells) {
@@ -284,7 +300,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             this->set_house_highlight(col+9, HintHighlight::Weak);
             this->set_cell_highlight(cell, HintHighlight::Strong);
 
-            m_cells[cell]->set_digit_highlight(candidate.num-1, false);
+            m_hint_candidate = candidate;
             break;
         }
         case DeductionTag::HiddenSingle: {
@@ -293,7 +309,8 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             auto house = house_of_cell(candidate.cell, data.house_type);
             this->set_house_highlight(house, HintHighlight::Weak);
             this->set_cell_highlight(candidate.cell, HintHighlight::Strong);
-            m_cells[candidate.cell]->set_digit_highlight(candidate.num-1, false);
+
+            m_hint_candidate = candidate;
             break;
         }
         case DeductionTag::NakedSubset: {
@@ -317,13 +334,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
                 }
             }
 
-            auto conflicts = data.conflicts;
-            auto len = conflicts_len(conflicts);
-
-            for (int i = 0; i < len; i++) {
-                auto conflict = conflicts_get(conflicts, i);
-                m_cells[conflict.cell]->set_digit_highlight(conflict.num - 1, true);
-            }
+            m_hint_conflicts = data.conflicts;
             break;
         }
         // straight copy from naked subsets => deduplicate
@@ -348,13 +359,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
                 }
             }
 
-            auto conflicts = data.conflicts;
-            auto len = conflicts_len(conflicts);
-
-            for (int i = 0; i < len; i++) {
-                auto conflict = conflicts_get(conflicts, i);
-                m_cells[conflict.cell]->set_digit_highlight(conflict.num - 1, true);
-            }
+            m_hint_conflicts = data.conflicts;
             break;
         }
         case DeductionTag::BasicFish: {
@@ -379,13 +384,22 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
                 }
             }
 
-            auto conflicts = data.conflicts;
-            auto len = conflicts_len(conflicts);
-            for (int i = 0; i < len; i++) {
-                auto conflict = conflicts_get(conflicts, i);
-                m_cells[conflict.cell]->set_digit_highlight(conflict.num-1, true);
-            }
+            m_hint_conflicts = data.conflicts;
             break;
+        }
+    }
+
+    if (m_hint_candidate.has_value()) {
+        auto candidate = *m_hint_candidate;
+        m_cells[candidate.cell]->set_digit_highlight(candidate.num-1, false);
+    }
+
+    if (m_hint_conflicts.has_value()) {
+        auto len = conflicts_len(*m_hint_conflicts);
+
+        for (int i = 0; i < len; i++) {
+            auto conflict = conflicts_get(*m_hint_conflicts, i);
+            m_cells[conflict.cell]->set_digit_highlight(conflict.num - 1, true);
         }
     }
 

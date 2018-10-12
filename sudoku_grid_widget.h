@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
 #include <QFrame>
 #include "quadratic_qframe.h"
@@ -20,6 +21,8 @@ class SudokuGridWidget final : public QuadraticQFrame {
     std::vector<Candidates> m_candidates;
     int m_highlighted_digit = 0; // 1-9, 0 for no highlight
     bool m_in_hint_mode = false;
+    std::optional<Candidate> m_hint_candidate;
+    std::optional<Conflicts> m_hint_conflicts;
 
     // TODO: make private again
     public:
