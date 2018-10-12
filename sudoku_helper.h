@@ -109,3 +109,22 @@ auto cell_at_position(int house, int position) -> int {
         case HouseType::Block: return block_cell_at_position(house - 18, position);
     }
 }
+
+// miniline functions
+
+auto block_of_miniline(int miniline) -> int {
+    if (miniline < 27) {
+        auto band = miniline / 9;
+        auto stack = miniline % 3;
+        return band * 3 + stack;
+    } else {
+        auto band = miniline % 3;
+        auto stack = miniline / 9 - 3;
+        return band * 3 + stack;
+    }
+}
+
+
+auto line_of_miniline(int miniline) -> int {
+    return miniline / 3;
+}

@@ -313,6 +313,29 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             m_hint_candidate = candidate;
             break;
         }
+        case DeductionTag::LockedCandidates: {
+            auto data = deduction.data.locked_candidates;
+            auto digit = data.digit;
+            auto miniline = data.miniline;
+
+            auto block = block_of_miniline(miniline);
+            auto line = line_of_miniline(miniline);
+
+            this->set_house_highlight(block+18, HintHighlight::Weak);
+            this->set_house_highlight(line, HintHighlight::Weak);
+
+            auto set_digit_highlights = [&](int cell) {
+                    m_cells[cell]->set_digit_highlight(digit-1, false);
+                };
+            if (data.is_pointing) {
+                foreach_cell_in_block(block, set_digit_highlights);
+            } else {
+                foreach_cell_in_house(line, set_digit_highlights);
+            }
+
+            m_hint_conflicts = data.conflicts;
+            break;
+        }
         case DeductionTag::NakedSubset: {
             auto data = deduction.data.naked_subsets;
             this->set_house_highlight(data.house, HintHighlight::Weak);
