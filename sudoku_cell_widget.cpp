@@ -287,15 +287,26 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
         Qt::Key_F9
     };
 
+    auto highlighted_digit = m_grid->m_highlighted_digit;
+    if (highlighted_digit != 0) {
+        auto candidate = Candidate {
+            cell: m_cell_nr,
+            num: highlighted_digit,
+        };
+        if (event->key() == Qt::Key_Return) {
+            m_grid->insert_candidate(candidate);
+        } else if (event->key() == Qt::Key_Space) {
+            auto is_possible = m_candidates[highlighted_digit-1];
+            m_grid->set_candidate(candidate, !is_possible);
+        }
+    }
+
     if (one <= event->key() && event->key() <= nine) {
         auto num = event->key() - Qt::Key_0;
-        //this->try_set_entry(num);
         m_grid->insert_candidate(Candidate {
             cell: m_cell_nr,
             num: num,
         });
-    //} else if (event->key() == Qt::Key_Backspace) {
-    //    this->clear();
     } else {
         auto key_ptr = std::find(second_row.begin(), second_row.end(), event->key());
 
@@ -314,10 +325,9 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     this->update();
 }
 
-auto SudokuCellWidget::reset_highlights() -> void {
+auto SudokuCellWidget::reset_hint_highlights() -> void {
     m_candidates_highlighted = {};
     m_candidates_highlighted_conflict = {};
-    m_is_highlighted = false;
     m_hint_mode = HintHighlight::None;
 }
 

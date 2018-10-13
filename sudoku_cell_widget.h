@@ -61,7 +61,7 @@ class SudokuCellWidget final : public QWidget {
 
         auto is_clue() const -> bool;
 
-        auto reset_highlights() -> void;
+        auto reset_hint_highlights() -> void;
         auto set_digit_highlight(int digit, bool is_conflict) -> void;
 
     public slots:

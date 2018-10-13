@@ -211,6 +211,11 @@ auto SudokuGridWidget::undo() -> bool {
 }
 
 auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
+    // cell is already filled, don't do anything
+    if (this->current_sudoku()._0[candidate.cell] != 0) {
+        return;
+    }
+
     this->push_savepoint();
 
     auto& sudoku = this->current_sudoku()._0;
@@ -267,7 +272,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
         m_in_hint_mode = false;
         for (auto *cell : m_cells) {
             cell->m_in_hint_mode = false;
-            cell->reset_highlights();
+            cell->reset_hint_highlights();
             cell->update();
         }
         return;

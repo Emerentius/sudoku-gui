@@ -80,8 +80,16 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->sudoku_grid->hint(strategies);
     };
 
-    // hook hint button up to hint slot
-    connect(ui->hint_button, &QPushButton::clicked,
+
+    auto hint_action = new QAction(this);
+    hint_action->setIconText(ui->hint_button->text());
+
+    auto hint_shortcut = QKeySequence(Qt::Key_H);
+    hint_action->setShortcut(hint_shortcut);
+
+    ui->hint_button->setDefaultAction(hint_action);
+
+    connect(hint_action, &QAction::triggered,
             hint_strategies);
 }
 
