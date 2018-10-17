@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
+#include <cassert>
 
 // ideally, the things in this file will either be expanded into
 // more powerful C++ solutions or added to the sudoku_ffi bindings

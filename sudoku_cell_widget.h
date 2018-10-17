@@ -28,11 +28,11 @@ class SudokuCellWidget final : public QWidget {
     const QColor DIGIT_HIGHLIGHTED_CONFLICT = QColor(225, 15, 15);   // red
 
     SudokuGridWidget *m_grid;
-    int m_cell_nr;
+    uint8_t m_cell_nr;
 
     bool m_is_entry = false;
     bool m_is_clue = false;
-    int m_digit = 0;
+    uint8_t m_digit = 0;
     std::bitset<9> m_candidates = {};
     std::bitset<9> m_candidates_highlighted = {};
     std::bitset<9> m_candidates_highlighted_conflict = {};

@@ -2,17 +2,17 @@
 //
 // The widget for the fillable cells in a sudoku grid.
 
-#include <QtCore>
-#include <QSize>
-#include <Qt>
-#include <QBrush>
-#include <QColor>
-#include <QPainter>
-#include <QFontDatabase>
-#include <algorithm>
-#include <assert.h>
 #include "sudoku_cell_widget.h"
 #include "sudoku_grid_widget.h"
+#include <QBrush>
+#include <QColor>
+#include <QFontDatabase>
+#include <QPainter>
+#include <QSize>
+#include <Qt>
+#include <QtCore>
+#include <algorithm>
+#include <cassert>
 
 SudokuCellWidget::SudokuCellWidget(int cell_nr, SudokuGridWidget *parent) :
     QWidget(parent),
@@ -29,9 +29,8 @@ auto SudokuCellWidget::is_clue() const -> bool {
 auto SudokuCellWidget::fg_color() const -> QColor {
     if (m_is_entry && !m_is_clue) {
         return FG_NONCLUE_ENTRY;
-    } else {
-        return FG_DEFAULT;
     }
+    return FG_DEFAULT;
 }
 
 auto SudokuCellWidget::bg_color() const -> QColor {
@@ -196,11 +195,13 @@ auto SudokuCellWidget::candidates() const -> std::bitset<9> {
 }
 
 auto SudokuCellWidget::focusInEvent(QFocusEvent *event) -> void {
+    event->accept();
     m_is_focused = true;
     this->update();
 }
 
 auto SudokuCellWidget::focusOutEvent(QFocusEvent *event) -> void {
+    event->accept();
     m_is_focused = false;
     this->update();
 }
@@ -290,8 +291,8 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     auto highlighted_digit = m_grid->m_highlighted_digit;
     if (highlighted_digit != 0) {
         auto candidate = Candidate {
-            cell: m_cell_nr,
-            num: highlighted_digit,
+            .cell = m_cell_nr,
+            .num = highlighted_digit,
         };
         if (event->key() == Qt::Key_Return) {
             m_grid->insert_candidate(candidate);
@@ -302,10 +303,10 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     }
 
     if (one <= event->key() && event->key() <= nine) {
-        auto num = event->key() - Qt::Key_0;
+        uint8_t num = event->key() - Qt::Key_0;
         m_grid->insert_candidate(Candidate {
-            cell: m_cell_nr,
-            num: num,
+            .cell = m_cell_nr,
+            .num = num,
         });
     } else {
         auto key_ptr = std::find(second_row.begin(), second_row.end(), event->key());
@@ -315,8 +316,8 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
             auto is_possible = m_candidates[pos];
             m_grid->set_candidate(
                 Candidate {
-                    cell: m_cell_nr,
-                    num: pos+1,
+                    .cell = m_cell_nr,
+                    .num = static_cast<uint8_t>(pos+1),
                 },
                 !is_possible
             );

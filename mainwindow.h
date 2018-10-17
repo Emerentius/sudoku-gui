@@ -10,7 +10,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    QFrame *m_sudoku_grid;
+    QFrame *m_sudoku_grid = nullptr;
 
 public:
     explicit MainWindow(QWidget *parent = 0);

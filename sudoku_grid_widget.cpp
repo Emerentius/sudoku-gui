@@ -1,11 +1,10 @@
-#include <assert.h>
-#include <optional>
-#include <QGridLayout>
-#include <QDebug>
-#include "sudoku_grid_widget.h"
 #include "sudoku_cell_widget.h"
 #include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
+#include "sudoku_grid_widget.h"
 #include "sudoku_helper.h"
+#include <QDebug>
+#include <QGridLayout>
+#include <optional>
 
 const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
@@ -25,7 +24,7 @@ SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QuadraticQFrame(parent) {
 
     // generate random sudoku and initialize the undo-stack
     m_sudoku.push_back(sudoku_generate_unique());
-    m_candidates.push_back(Candidates());
+    m_candidates.emplace_back();
 
     this->set_clues();
     this->compute_candidates();
@@ -55,7 +54,7 @@ auto SudokuGridWidget::generate_layout() -> void {
             inner_layout->setVerticalSpacing(MINOR_LINE_SIZE);
 
             inner_layouts.push_back(inner_layout);
-            outer_layout->addLayout(inner_layout, row, col, 0); // 4th arg is alignment, 0 means stretch
+            outer_layout->addLayout(inner_layout, row, col);
         }
     }
 
@@ -69,7 +68,7 @@ auto SudokuGridWidget::generate_layout() -> void {
         auto minicol = col % 3;
 
         auto *cell_widget = m_cells[cell];
-        inner_layouts[box]->addWidget(cell_widget, minirow, minicol, 0);
+        inner_layouts[box]->addWidget(cell_widget, minirow, minicol);
     }
 }
 
@@ -86,7 +85,7 @@ auto SudokuGridWidget::sudoku() const -> Sudoku {
 }
 
 auto SudokuGridWidget::grid_state() const -> GridState {
-    GridState grid_state;
+    GridState grid_state{};
     auto sudoku = this->sudoku();
     for (int cell = 0; cell < 81; cell++) {
         auto digit = sudoku._0[cell];
@@ -157,8 +156,8 @@ auto SudokuGridWidget::update_cells() -> void {
             if (*cell_ptr == 0) {
                 auto cell_candidates = candidates[cell];
                 for (int dig = 1; dig < 10; dig++) {
-                    c->try_set_possibility(dig, (cell_candidates & 1) == 1);
-                    cell_candidates >>= 1;
+                    c->try_set_possibility(dig, (cell_candidates & 1u) == 1);
+                    cell_candidates >>= 1u;
                 }
             } else {
                 c->try_set_entry(*cell_ptr);
@@ -194,7 +193,7 @@ auto SudokuGridWidget::push_savepoint() -> void {
 }
 
 auto SudokuGridWidget::pop_savepoint() -> void {
-    assert(m_candidates.size() > 0 && m_sudoku.size() > 0);
+    assert(!m_candidates.empty() && !m_sudoku.empty());
     m_sudoku.pop_back();
     m_candidates.pop_back();
 
@@ -205,9 +204,8 @@ auto SudokuGridWidget::undo() -> bool {
     if (m_candidates.size() > 1) {
         this->pop_savepoint();
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
@@ -230,8 +228,8 @@ auto SudokuGridWidget::set_candidate(Candidate candidate, bool is_possible) -> v
 
     auto& cands = this->current_candidates();
     auto& cell_cands = cands[candidate.cell];
-    cell_cands &= ~( 1 << candidate.num - 1);
-    cell_cands |= (uint16_t) is_possible << candidate.num - 1;
+    cell_cands &= ~( 1u << (candidate.num - 1));
+    cell_cands |= (uint16_t) is_possible << (candidate.num - 1);
     m_cells[candidate.cell]->try_set_possibility(candidate.num, is_possible);
     this->update_highlights();
 }
@@ -415,6 +413,8 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             m_hint_conflicts = data.conflicts;
             break;
         }
+        default:
+            break;
     }
 
     if (m_hint_candidate.has_value()) {

@@ -17,7 +17,7 @@ using Candidates = std::array<uint16_t, 81>;
 class SudokuGridWidget final : public QuadraticQFrame {
     Q_OBJECT
 
-    std::array<SudokuCellWidget*, 81> m_cells;
+    std::array<SudokuCellWidget*, 81> m_cells{};
     std::vector<Candidates> m_candidates;
     bool m_in_hint_mode = false;
     std::optional<Candidate> m_hint_candidate;
@@ -27,7 +27,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
         // TODO: make private again
         std::vector<Sudoku> m_sudoku;
 
-        int m_highlighted_digit = 0; // 1-9, 0 for no highlight
+        uint8_t m_highlighted_digit = 0; // 1-9, 0 for no highlight
 
     private:
         auto current_sudoku() -> Sudoku&;

@@ -1,8 +1,8 @@
+#include "mainwindow.h"
+#include "sudoku_grid_widget.h"
+#include "ui_mainwindow.h"
 #include <QAction>
 #include <QActionGroup>
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "sudoku_grid_widget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
