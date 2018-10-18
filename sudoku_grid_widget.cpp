@@ -245,15 +245,20 @@ auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
     this->recompute_candidates();
 }
 
+// Store savepoint and set candidate
 auto SudokuGridWidget::set_candidate(Candidate candidate, bool is_possible) -> void {
     this->push_savepoint();
+    this->_set_candidate(candidate, is_possible);
+    this->update_highlights();
+}
 
+// set candidate in storage and cell, don't create a savepoint
+auto SudokuGridWidget::_set_candidate(Candidate candidate, bool is_possible) -> void {
     auto& cands = this->candidates_ref();
     auto& cell_cands = cands[candidate.cell];
     cell_cands &= ~( 1u << (candidate.num - 1));
     cell_cands |= (uint16_t) is_possible << (candidate.num - 1);
     m_cells[candidate.cell]->try_set_possibility(candidate.num, is_possible);
-    this->update_highlights();
 }
 
 auto SudokuGridWidget::highlight_digit(int digit) -> void {
@@ -279,13 +284,15 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             m_hint_candidate = std::nullopt;
         }
         if (m_hint_conflicts.has_value()) {
-            auto len = conflicts_len(*m_hint_conflicts);
+            this->push_savepoint();
 
+            auto len = conflicts_len(*m_hint_conflicts);
             for (int i = 0; i < len; i++) {
                 auto conflict = conflicts_get(*m_hint_conflicts, i);
-                this->set_candidate(conflict, false);
+                this->_set_candidate(conflict, false);
             }
             m_hint_conflicts = std::nullopt;
+            this->recompute_candidates();
         }
 
         // reset out of hint mode

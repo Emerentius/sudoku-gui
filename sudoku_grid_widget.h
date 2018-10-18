@@ -47,6 +47,9 @@ class SudokuGridWidget final : public QuadraticQFrame {
         auto set_house_highlight(int, HintHighlight) -> void;
         auto set_cell_highlight(int, HintHighlight) -> void;
 
+        //auto _insert_candidate(Candidate candidate) -> void;
+        auto _set_candidate(Candidate candidate, bool is_possible) -> void;
+
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
 
