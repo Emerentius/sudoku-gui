@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>905</width>
-    <height>770</height>
+    <height>814</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -375,6 +375,9 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Naked Singles</string>
            </property>
@@ -393,6 +396,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
             <string>Hidden Singles</string>
@@ -413,6 +419,9 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Locked Candidates</string>
            </property>
@@ -431,6 +440,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
             <string>Naked Pairs</string>
@@ -451,6 +463,9 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Naked Triples</string>
            </property>
@@ -469,6 +484,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
             <string>Naked Quads</string>
@@ -489,6 +507,9 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Hidden Pairs</string>
            </property>
@@ -507,6 +528,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
             <string>Hidden Triples</string>
@@ -527,6 +551,9 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Hidden Quads</string>
            </property>
@@ -545,6 +572,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
             <string>X-Wing</string>
@@ -565,6 +595,9 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Swordfish</string>
            </property>
@@ -583,6 +616,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
             <string>Jellyfish</string>
@@ -628,6 +664,7 @@
     </rect>
    </property>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -635,8 +672,82 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_new_sudoku"/>
+   <addaction name="separator"/>
+   <addaction name="action_copy"/>
+   <addaction name="action_paste_sudoku"/>
+   <addaction name="separator"/>
+   <addaction name="action_undo"/>
+   <addaction name="action_redo"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_new_sudoku">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/Gnome-Document-New-64.png</normaloff>icons/Gnome-Document-New-64.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Sudoku</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="action_copy">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/Gnome-Edit-Copy-64.png</normaloff>icons/Gnome-Edit-Copy-64.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy Sudoku</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="action_paste_sudoku">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/Gnome-Edit-Paste-64.png</normaloff>icons/Gnome-Edit-Paste-64.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste Sudoku</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="action_undo">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/Gnome-Edit-Undo-64.png</normaloff>icons/Gnome-Edit-Undo-64.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="action_redo">
+   <property name="icon">
+    <iconset>
+     <normaloff>icons/Gnome-Edit-Redo-64.png</normaloff>icons/Gnome-Edit-Redo-64.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
+  <action name="action_hint">
+   <property name="text">
+    <string>Hint</string>
+   </property>
+   <property name="shortcut">
+    <string>H</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

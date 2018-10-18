@@ -18,20 +18,22 @@ class SudokuGridWidget final : public QuadraticQFrame {
     Q_OBJECT
 
     std::array<SudokuCellWidget*, 81> m_cells{};
+
+    int m_stack_position = 0;
     std::vector<Candidates> m_candidates;
+    std::vector<Sudoku> m_sudoku;
+
     bool m_in_hint_mode = false;
     std::optional<Candidate> m_hint_candidate;
     std::optional<Conflicts> m_hint_conflicts;
 
     public:
-        // TODO: make private again
-        std::vector<Sudoku> m_sudoku;
-
         uint8_t m_highlighted_digit = 0; // 1-9, 0 for no highlight
 
     private:
-        auto current_sudoku() -> Sudoku&;
-        auto current_candidates() -> Candidates&;
+        auto sudoku_ref() -> Sudoku&;
+        auto candidates_ref() -> Candidates&;
+        auto candidates() const -> Candidates;
         auto grid_state() const -> GridState;
         auto push_savepoint() -> void;
         auto pop_savepoint() -> void;
@@ -56,6 +58,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
         auto insert_candidate(Candidate candidate) -> void;
         auto set_candidate(Candidate candidate, bool is_possible) -> void;
         auto undo() -> bool;
+        auto redo() -> bool;
 
     public slots:
         void highlight_digit(int digit);

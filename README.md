@@ -28,7 +28,6 @@ But I can only say that it works for certain on Ubuntu 18.04 with all of the req
 | Move                      | Arrow keys    |
 | Give a hint               | H             |
 | Undo                      | Ctrl + Z      |
-
-Redo is not currently implemented
+| Redo                      | Ctrl + Shift + Z      |
 
 ![Example Screenshot](Example.png)
