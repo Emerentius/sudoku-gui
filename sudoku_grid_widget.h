@@ -5,6 +5,7 @@
 #include <QFrame>
 #include "quadratic_qframe.h"
 #include "hint_highlight.h"
+#include "cell_state.h"
 
 class SudokuCellWidget;
 
@@ -12,6 +13,7 @@ enum class Direction {
     Left, Right, Up, Down
 };
 
+using GridWidgetState = std::array<CellWidgetState, 81>;
 using Candidates = std::array<uint16_t, 81>;
 
 class SudokuGridWidget final : public QuadraticQFrame {
@@ -20,8 +22,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
     std::array<SudokuCellWidget*, 81> m_cells{};
 
     int m_stack_position = 0;
-    std::vector<Candidates> m_candidates;
-    std::vector<Sudoku> m_sudoku;
+    std::vector<GridWidgetState> m_sudoku;
 
     bool m_in_hint_mode = false;
     std::optional<Candidate> m_hint_candidate;
@@ -31,17 +32,17 @@ class SudokuGridWidget final : public QuadraticQFrame {
         uint8_t m_highlighted_digit = 0; // 1-9, 0 for no highlight
 
     private:
-        auto sudoku_ref() -> Sudoku&;
-        auto candidates_ref() -> Candidates&;
-        auto candidates() const -> Candidates;
+        auto strategy_solver() const -> StrategySolver;
+
+        auto sudoku_state() -> GridWidgetState&;
+        auto sudoku_state() const -> const GridWidgetState&;
+
         auto grid_state() const -> GridState;
         auto push_savepoint() -> void;
         auto pop_savepoint() -> void;
-        auto update_cells() -> void;
         auto initialize_cells() -> void;
         auto generate_layout() -> void;
-        auto set_clues() -> void;
-        auto compute_candidates() -> void;
+        auto reset() -> void;
 
         auto set_house_highlight(int, HintHighlight) -> void;
         auto set_cell_highlight(int, HintHighlight) -> void;
@@ -51,9 +52,11 @@ class SudokuGridWidget final : public QuadraticQFrame {
 
     public:
         explicit SudokuGridWidget(QWidget *parent = 0);
+        auto generate_new_sudoku() -> void;
 
-        auto sudoku() const -> Sudoku;
         auto recompute_candidates() -> void;
+
+        auto cell_state(uint8_t cell) const -> const CellWidgetState&;
 
         auto move_focus(int current_cell, Direction direction) -> void;
 

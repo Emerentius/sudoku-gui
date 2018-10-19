@@ -36,13 +36,14 @@ class SudokuCellWidget final : public QWidget {
     SudokuGridWidget *const m_grid;
     const uint8_t m_cell_nr;
 
-    CellWidgetState m_state = CellCandidates();
     std::array<std::optional<DigitHighlight>, 9> m_candidates_highlights = {};
 
     public:
         HintHighlight m_hint_mode = HintHighlight::None;
 
     private:
+        auto cell_state() const -> const CellWidgetState&;
+
         auto fg_color() const -> QColor;
         auto bg_color() const -> QColor;
         auto bg_color_inner() const -> QColor;
@@ -63,10 +64,4 @@ class SudokuCellWidget final : public QWidget {
 
         auto reset_hint_highlights() -> void;
         auto set_digit_highlight(int digit, bool is_conflict) -> void;
-
-    public slots:
-        void set_clue(int digit);
-        bool try_set_possibility(int digit, bool is_possible);
-        bool try_set_entry(int digit);
-        void clear();
 };

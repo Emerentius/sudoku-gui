@@ -18,4 +18,4 @@ using CellCandidates = std::bitset<9>;
 // too dangerous to rely on a tagged union everywhere
 // it also differentiates clues and mere entries
 // TODO: find better name
-using CellWidgetState = std::variant<Clue, Entry, CellCandidates>;
+using CellWidgetState = std::variant<CellCandidates, Clue, Entry>;

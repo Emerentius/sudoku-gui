@@ -22,14 +22,41 @@ SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QuadraticQFrame(parent) {
     this->setAutoFillBackground(true);
     this->setPalette(pal);
 
-    // generate random sudoku and initialize the undo-stack
-    m_sudoku.push_back(sudoku_generate_unique());
-    m_candidates.emplace_back();
-
-    this->set_clues();
-    this->compute_candidates();
-    this->update_cells();
+    this->generate_new_sudoku();
 };
+
+auto SudokuGridWidget::cell_state(uint8_t cell) const -> const CellWidgetState& {
+    return this->sudoku_state()[cell];
+}
+
+auto SudokuGridWidget::reset() -> void {
+    m_stack_position = 0;
+    m_sudoku.resize(0);
+
+    m_in_hint_mode = false;
+    m_hint_candidate = {};
+    m_hint_conflicts = {};
+    m_highlighted_digit = 0;
+}
+
+auto SudokuGridWidget::generate_new_sudoku() -> void {
+    this->reset();
+    auto sudoku = sudoku_generate_unique();
+    auto& grid_state = m_sudoku.emplace_back();
+
+    uint8_t cell = 0;
+    for (auto& cell_state : grid_state) {
+        auto digit = sudoku._0[cell];
+        if (digit != 0) {
+            cell_state = Clue { .digit = digit };
+        } else {
+            cell_state = CellCandidates().set();
+        }
+        cell++;
+    }
+
+    this->recompute_candidates();
+}
 
 auto SudokuGridWidget::initialize_cells() -> void {
     for (int n_cell = 0; n_cell < 81; n_cell++) {
@@ -72,104 +99,57 @@ auto SudokuGridWidget::generate_layout() -> void {
     }
 }
 
-auto SudokuGridWidget::sudoku_ref() -> Sudoku& {
+auto SudokuGridWidget::sudoku_state() -> GridWidgetState& {
     return m_sudoku[m_stack_position];
 }
 
-auto SudokuGridWidget::candidates_ref() -> Candidates& {
-    return m_candidates[m_stack_position];
-}
-
-auto SudokuGridWidget::sudoku() const -> Sudoku {
+auto SudokuGridWidget::sudoku_state() const -> const GridWidgetState& {
     return m_sudoku[m_stack_position];
-}
-
-auto SudokuGridWidget::candidates() const -> Candidates {
-    return m_candidates[m_stack_position];
 }
 
 auto SudokuGridWidget::grid_state() const -> GridState {
     GridState grid_state{};
-    auto sudoku = this->sudoku();
+    const auto& sudoku_state = this->sudoku_state();
     for (int cell = 0; cell < 81; cell++) {
-        auto digit = sudoku._0[cell];
+        auto const cell_widget_state = sudoku_state[cell];
         auto &cell_state = grid_state.grid[cell];
-        if (digit != 0) {
+
+        if (std::holds_alternative<CellCandidates>(cell_widget_state)) {
+            auto candidates = std::get<CellCandidates>(cell_widget_state);
+            cell_state.tag = CellState::Tag::Candidates;
+            cell_state.candidates._0 = candidates.to_ulong();
+        } else {
+            uint8_t digit;
+            if (std::holds_alternative<Clue>(cell_widget_state)) {
+                digit = std::get<Clue>(cell_widget_state).digit;
+            } else {
+                digit = std::get<Entry>(cell_widget_state).digit;
+            }
             cell_state.tag = CellState::Tag::Digit;
             cell_state.digit._0 = digit;
-        } else {
-            cell_state.tag = CellState::Tag::Candidates;
-            cell_state.candidates._0 = this->candidates()[cell];
         }
     }
     return grid_state;
 }
 
-// Only for the initial round!
-// It sets all currently known entries as clues
-auto SudokuGridWidget::set_clues() -> void {
-    auto& sudoku = this->sudoku_ref();
-    auto cell_ptr = sudoku_as_ptr(&sudoku);
-    for (int cell = 0; cell < 81; cell++) {
-        //auto& c = m_cells[cell];
-        if (*cell_ptr != 0) {
-            m_cells[cell]->set_clue(*cell_ptr);
-        }
-        cell_ptr++;
-    }
-}
-
-auto SudokuGridWidget::compute_candidates() -> void {
-    auto solver = strategy_solver_new(this->sudoku());
-    auto& sudoku = this->sudoku_ref();
-    auto cell_ptr = sudoku_as_ptr(&sudoku);
-    auto& candidates = this->candidates_ref();
-    for (int cell = 0; cell < 81; cell++) {
-        if (*cell_ptr == 0) {
-            auto solver_candidates = strategy_solver_cell_candidates(solver, cell);
-            candidates[cell] = solver_candidates;
-        }
-        cell_ptr++;
-    }
-}
-
 auto SudokuGridWidget::recompute_candidates() -> void {
-    auto solver = strategy_solver_new(this->sudoku());
-    auto cell_ptr = sudoku_as_ptr(&this->sudoku_ref());
-    auto& candidates = this->candidates_ref();
+    auto solver = this->strategy_solver();
+
+    auto& sudoku_state = this->sudoku_state();
     for (int cell = 0; cell < 81; cell++) {
-        if (*cell_ptr == 0) {
-            auto& c = m_cells[cell];
-            auto solver_candidates = strategy_solver_cell_candidates(solver, cell);
-            candidates[cell] &= solver_candidates;
+        auto& cell_widget_state = sudoku_state[cell];
+
+        // skip clues, the GridState does not distinguish between clue and entry
+        if (!std::holds_alternative<CellCandidates>(cell_widget_state)) {
+            continue;
         }
-        cell_ptr++;
+
+        auto& candidates = std::get<CellCandidates>(cell_widget_state);
+        auto solver_candidates = strategy_solver_cell_candidates(solver, cell);
+        candidates &= CellCandidates(solver_candidates);
     }
 
-    this->update_cells();
-}
-
-auto SudokuGridWidget::update_cells() -> void {
-    auto sudoku = this->sudoku();
-    auto cell_ptr = sudoku_as_ptr(&sudoku);
-    auto candidates = this->candidates();
-    for (int cell = 0; cell < 81; cell++) {
-        auto& c = m_cells[cell];
-        if ( !(c->is_clue()) ) {
-            c->clear();
-            if (*cell_ptr == 0) {
-                auto cell_candidates = candidates[cell];
-                for (int dig = 1; dig < 10; dig++) {
-                    c->try_set_possibility(dig, (cell_candidates & 1u) == 1);
-                    cell_candidates >>= 1u;
-                }
-            } else {
-                c->try_set_entry(*cell_ptr);
-            }
-        }
-        cell_ptr++;
-        c->update(); // currently superflous because update_highlights does it as well
-    }
+    this->update();
 }
 
 auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void {
@@ -192,12 +172,9 @@ auto SudokuGridWidget::push_savepoint() -> void {
     // if the stack contains remnants from undo
     // delete them
     m_sudoku.resize(m_stack_position+1);
-    m_candidates.resize(m_stack_position+1);
 
-    auto sudoku = this->sudoku();
-    Candidates candidates = this->candidates_ref();
-    m_sudoku.push_back(sudoku);
-    m_candidates.push_back(candidates);
+    auto state = this->sudoku_state();
+    m_sudoku.push_back(state);
 
     m_stack_position++;
 }
@@ -209,7 +186,7 @@ auto SudokuGridWidget::undo() -> bool {
 
     if (m_stack_position > 0) {
         m_stack_position--;
-        this->update_cells();
+        this->update();
         return true;
     }
     return false;
@@ -219,9 +196,9 @@ auto SudokuGridWidget::redo() -> bool {
     if (m_in_hint_mode) {
         return false;
     }
-    if (m_stack_position + 1 < m_candidates.size()) {
+    if (m_stack_position + 1 < m_sudoku.size()) {
         m_stack_position++;
-        this->update_cells();
+        this->update();
         return true;
     }
     return false;
@@ -229,17 +206,16 @@ auto SudokuGridWidget::redo() -> bool {
 
 
 auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
+    this->push_savepoint();
+
+    auto& grid_state = this->sudoku_state();
+    auto& cell_state = grid_state[candidate.cell];
     // cell is already filled, don't do anything
-    if (this->sudoku_ref()._0[candidate.cell] != 0) {
+    if (!std::holds_alternative<CellCandidates>(cell_state)) {
         return;
     }
 
-    this->push_savepoint();
-
-    auto& sudoku = this->sudoku_ref()._0;
-    sudoku[candidate.cell] = candidate.num;
-
-    m_cells[candidate.cell]->try_set_entry(candidate.num);
+    cell_state = Entry { .digit = candidate.num };
     this->recompute_candidates();
 }
 
@@ -247,22 +223,26 @@ auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
 auto SudokuGridWidget::set_candidate(Candidate candidate, bool is_possible) -> void {
     this->push_savepoint();
     this->_set_candidate(candidate, is_possible);
-    this->update_cells();
+    this->update();
 }
 
 // set candidate in storage and cell, don't create a savepoint
 auto SudokuGridWidget::_set_candidate(Candidate candidate, bool is_possible) -> void {
-    auto& cands = this->candidates_ref();
-    auto& cell_cands = cands[candidate.cell];
+    auto& cell_state = this->sudoku_state()[candidate.cell];
+    if (!std::holds_alternative<CellCandidates>(cell_state)) {
+        return;
+    }
+    auto& cell_cands = std::get<CellCandidates>(cell_state);
+    //auto& cell_state = grid_state[candidate.cell];
     cell_cands &= ~( 1u << (candidate.num - 1));
     cell_cands |= (uint16_t) is_possible << (candidate.num - 1);
-    m_cells[candidate.cell]->try_set_possibility(candidate.num, is_possible);
+    //m_cells[candidate.cell]->try_set_possibility(candidate.num, is_possible);
 }
 
 auto SudokuGridWidget::highlight_digit(int digit) -> void {
     assert(digit >= 0 && digit < 10);
     m_highlighted_digit = digit;
-    this->update_cells();
+    this->update();
 }
 
 auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
@@ -293,7 +273,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
         return;
     }
 
-    auto solver = strategy_solver_from_grid_state(this->grid_state());
+    auto solver = this->strategy_solver();
     auto results = strategy_solver_solve(solver, strategies.data(), strategies.size());
     auto deductions = results.deductions;
     auto n_deductions = deductions_len(deductions);
@@ -458,6 +438,10 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
 
 auto SudokuGridWidget::in_hint_mode() const -> bool {
     return m_in_hint_mode;
+}
+
+auto SudokuGridWidget::strategy_solver() const -> StrategySolver {
+    return strategy_solver_from_grid_state(this->grid_state());
 }
 
 auto SudokuGridWidget::set_house_highlight(int house, HintHighlight highlight) -> void {

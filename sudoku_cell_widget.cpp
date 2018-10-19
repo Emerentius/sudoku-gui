@@ -22,16 +22,20 @@ SudokuCellWidget::SudokuCellWidget(int cell_nr, SudokuGridWidget *parent) :
     this->setFocusPolicy(Qt::FocusPolicy::ClickFocus);
 }
 
+auto SudokuCellWidget::cell_state() const -> const CellWidgetState& {
+    return m_grid->cell_state(m_cell_nr);
+}
+
 auto SudokuCellWidget::is_clue() const -> bool {
-    return std::holds_alternative<Clue>(m_state);
+    return std::holds_alternative<Clue>(this->cell_state());
 }
 
 auto SudokuCellWidget::is_entry() const -> bool {
-    return std::holds_alternative<Entry>(m_state);
+    return std::holds_alternative<Entry>(this->cell_state());
 }
 
 auto SudokuCellWidget::is_candidates() const -> bool {
-    return std::holds_alternative<CellCandidates>(m_state);
+    return std::holds_alternative<CellCandidates>(this->cell_state());
 }
 
 auto SudokuCellWidget::fg_color() const -> QColor {
@@ -186,47 +190,19 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
 
 auto SudokuCellWidget::digit() const -> std::optional<int> {
     if (this->is_clue()) {
-        return std::get<Clue>(m_state).digit;
+        return std::get<Clue>(this->cell_state()).digit;
     } else if (this->is_entry()) {
-        return std::get<Entry>(m_state).digit;
+        return std::get<Entry>(this->cell_state()).digit;
     }
     return std::optional<int>();
 }
 
 auto SudokuCellWidget::candidates() const -> std::optional<CellCandidates> {
-    if ( std::holds_alternative<CellCandidates>(m_state)) {
-        return std::get<CellCandidates>(m_state);
+    auto cell_state = this->cell_state();
+    if ( std::holds_alternative<CellCandidates>(cell_state)) {
+        return std::get<CellCandidates>(cell_state);
     }
     return std::optional<CellCandidates>();
-}
-
-auto SudokuCellWidget::try_set_possibility(int digit, bool is_possible) -> bool {
-    if (!this->is_candidates()) {
-        return false;
-    }
-    assert(0 < digit && digit < 10);
-    auto &candidates = std::get<CellCandidates>(m_state);
-    candidates[digit-1] = is_possible;
-    return true;
-}
-
-auto SudokuCellWidget::set_clue(int digit) -> void {
-    assert(0 < digit && digit < 10);
-    m_state = Clue { .digit = digit };
-}
-
-// non-clue entry
-auto SudokuCellWidget::try_set_entry(int digit) -> bool {
-    if (!this->is_candidates()) {
-        return false;
-    }
-
-    assert(0 < digit && digit < 10);
-    m_state = Entry { .digit = digit };
-}
-
-auto SudokuCellWidget::clear() -> void {
-    m_state = std::bitset<9>();
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
