@@ -89,6 +89,12 @@ MainWindow::MainWindow(QWidget *parent) :
             hint_strategies);
 
 
+    // new sudoku
+    connect(ui->action_new_sudoku, &QAction::triggered,
+            [this]() {
+                ui->sudoku_grid->generate_new_sudoku();
+            });
+
     // undo
     connect(ui->action_undo, &QAction::triggered,
             [this]() { ui->sudoku_grid->undo(); });
