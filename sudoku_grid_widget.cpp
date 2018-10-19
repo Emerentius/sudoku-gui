@@ -233,10 +233,8 @@ auto SudokuGridWidget::_set_candidate(Candidate candidate, bool is_possible) -> 
         return;
     }
     auto& cell_cands = std::get<CellCandidates>(cell_state);
-    //auto& cell_state = grid_state[candidate.cell];
     cell_cands &= ~( 1u << (candidate.num - 1));
     cell_cands |= (uint16_t) is_possible << (candidate.num - 1);
-    //m_cells[candidate.cell]->try_set_possibility(candidate.num, is_possible);
 }
 
 auto SudokuGridWidget::highlight_digit(int digit) -> void {
@@ -291,8 +289,8 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
     qDebug() << (int) deduction.tag << "\n";
 
     switch (deduction.tag) {
-        case DeductionTag::NakedSingle: {
-            auto candidate = deduction.data.naked_single.candidate;
+        case DeductionTag::NakedSingles: {
+            auto candidate = deduction.data.naked_singles.candidate;
             auto cell = candidate.cell;
             auto row = cell / 9;
             auto col = cell % 9;
@@ -303,8 +301,8 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             m_hint_candidate = candidate;
             break;
         }
-        case DeductionTag::HiddenSingle: {
-            auto data = deduction.data.hidden_single;
+        case DeductionTag::HiddenSingles: {
+            auto data = deduction.data.hidden_singles;
             auto candidate = data.candidate;
             auto house = house_of_cell(candidate.cell, data.house_type);
             this->set_house_highlight(house, HintHighlight::Weak);
@@ -336,33 +334,8 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             m_hint_conflicts = data.conflicts;
             break;
         }
-        case DeductionTag::NakedSubset: {
-            auto data = deduction.data.naked_subsets;
-            this->set_house_highlight(data.house, HintHighlight::Weak);
-            auto digits = std::bitset<9>(data.digits);
-            auto positions = std::bitset<9>(data.positions);
-            for (int pos = 0; pos < 9; pos++) {
-                if (!positions[pos]) {
-                    continue;
-                }
-                auto cell_nr = cell_at_position(data.house, pos);
-                this->set_cell_highlight(cell_nr, HintHighlight::Strong);
-
-                auto *cell = m_cells[cell_nr];
-                for (int digit = 0; digit < 9; digit++) {
-                    if (!digits[digit]) {
-                        continue;
-                    }
-                    cell->set_digit_highlight(digit, false);
-                }
-            }
-
-            m_hint_conflicts = data.conflicts;
-            break;
-        }
-        // straight copy from naked subsets => deduplicate
-        case DeductionTag::HiddenSubset: {
-            auto data = deduction.data.hidden_subsets;
+        case DeductionTag::Subsets: {
+            auto data = deduction.data.subsets;
             this->set_house_highlight(data.house, HintHighlight::Weak);
             auto digits = std::bitset<9>(data.digits);
             auto positions = std::bitset<9>(data.positions);
