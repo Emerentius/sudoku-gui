@@ -11,6 +11,12 @@
 #include <QFocusEvent>
 #include <QKeyEvent>
 #include "hint_highlight.h"
+#include "cell_state.h"
+
+enum class DigitHighlight {
+    Regular,
+    Conflict, // removable candidates
+};
 
 class SudokuGridWidget;
 
@@ -27,20 +33,13 @@ class SudokuCellWidget final : public QWidget {
     const QColor DIGIT_HIGHLIGHTED = QColor(15, 225, 15);   // green
     const QColor DIGIT_HIGHLIGHTED_CONFLICT = QColor(225, 15, 15);   // red
 
-    SudokuGridWidget *m_grid;
-    uint8_t m_cell_nr;
+    SudokuGridWidget *const m_grid;
+    const uint8_t m_cell_nr;
 
-    bool m_is_entry = false;
-    bool m_is_clue = false;
-    uint8_t m_digit = 0;
-    std::bitset<9> m_candidates = {};
-    std::bitset<9> m_candidates_highlighted = {};
-    std::bitset<9> m_candidates_highlighted_conflict = {};
+    CellWidgetState m_state = CellCandidates();
+    std::array<std::optional<DigitHighlight>, 9> m_candidates_highlights = {};
 
     public:
-        bool m_is_focused = false;
-        bool m_is_highlighted = false;
-        bool m_in_hint_mode = false;
         HintHighlight m_hint_mode = HintHighlight::None;
 
     private:
@@ -48,18 +47,19 @@ class SudokuCellWidget final : public QWidget {
         auto bg_color() const -> QColor;
         auto bg_color_inner() const -> QColor;
 
+        auto in_hint_mode() const -> bool;
+        auto contains_highlighted_digit() const -> bool;
+
     public:
         explicit SudokuCellWidget(int cell_nr, SudokuGridWidget *parent = 0);
         auto paintEvent(QPaintEvent *event) -> void override;
-        // TODO: Is this necessary?
-        auto sizeHint() const -> QSize override;
-        auto digit() const -> int;
-        auto candidates() const -> std::bitset<9>;
-        auto focusInEvent(QFocusEvent *event) -> void override;
-        auto focusOutEvent(QFocusEvent *event) -> void override;
         auto keyPressEvent(QKeyEvent *event) -> void override;
 
         auto is_clue() const -> bool;
+        auto is_entry() const -> bool;
+        auto is_candidates() const -> bool;
+        auto digit() const -> std::optional<int>;
+        auto candidates() const -> std::optional<std::bitset<9>>;
 
         auto reset_hint_highlights() -> void;
         auto set_digit_highlight(int digit, bool is_conflict) -> void;

@@ -23,18 +23,26 @@ SudokuCellWidget::SudokuCellWidget(int cell_nr, SudokuGridWidget *parent) :
 }
 
 auto SudokuCellWidget::is_clue() const -> bool {
-    return m_is_clue;
+    return std::holds_alternative<Clue>(m_state);
+}
+
+auto SudokuCellWidget::is_entry() const -> bool {
+    return std::holds_alternative<Entry>(m_state);
+}
+
+auto SudokuCellWidget::is_candidates() const -> bool {
+    return std::holds_alternative<CellCandidates>(m_state);
 }
 
 auto SudokuCellWidget::fg_color() const -> QColor {
-    if (m_is_entry && !m_is_clue) {
+    if (this->is_entry()) {
         return FG_NONCLUE_ENTRY;
     }
     return FG_DEFAULT;
 }
 
 auto SudokuCellWidget::bg_color() const -> QColor {
-    if (m_in_hint_mode) {
+    if (this->in_hint_mode()) {
         switch (m_hint_mode) {
             case HintHighlight::Strong: return BG_HIGHLIGHTED_HINT_STRONG;
             case HintHighlight::Weak:   return BG_HIGHLIGHTED_HINT_WEAK;
@@ -42,25 +50,25 @@ auto SudokuCellWidget::bg_color() const -> QColor {
         }
     }
 
-    if (m_is_focused) {
+    if (this->hasFocus()) {
         return BG_FOCUSED;
     }
 
-    if (m_is_highlighted) {
+    if (this->contains_highlighted_digit()) {
         return BG_HIGHLIGHTED;
     }
     return BG_DEFAULT;
 }
 
 auto SudokuCellWidget::bg_color_inner() const -> QColor {
-    if (m_in_hint_mode) {
+    if (this->in_hint_mode()) {
         return bg_color();
     }
 
-    if (m_is_highlighted) {
+    if (this->contains_highlighted_digit()) {
         return BG_HIGHLIGHTED;
     }
-    if (m_is_focused) {
+    if (this->hasFocus()) {
         return BG_FOCUSED;
     }
     return BG_DEFAULT;
@@ -94,12 +102,12 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
     auto const alignment = Qt::AlignCenter;
     QString text;
 
-    if (m_is_entry) {
+    auto digit = this->digit();
+    if (digit) {
         font.setPixelSize( this->width() * 5 / 6 );
-        if (m_digit != 0) {
-            text = QString::number(m_digit);
-        }
+        text = QString::number(digit.value());
     } else {
+        auto candidates = this->candidates().value();
         font.setPixelSize(this->width() / 4);
         // Non-Breaking Space. Normal spaces are trimmed.
         // This forces Qt to lay out the text as given
@@ -112,7 +120,7 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 auto num = 3 * row + col;
-                if (m_candidates[num]) {
+                if (candidates[num]) {
                     text += QString::number(num+1);
                 } else {
                     text += nbs;
@@ -143,18 +151,21 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
                 // strategy results don't always contain the full list of candidates
                 // only 2 sets of some position and some digits
                 // we check here so we don't highlight empty places
-                if (m_candidates[digit]) {
-                    if (m_candidates_highlighted[digit]) {
-                        painter.setBrush(QBrush(DIGIT_HIGHLIGHTED));
+                if (candidates[digit]) {
+                    auto highlight = m_candidates_highlights[digit];
+                    if (highlight) {
+                        switch (*highlight) {
+                            case DigitHighlight::Regular: {
+                                painter.setBrush(QBrush(DIGIT_HIGHLIGHTED));
+                                break;
+                            }
+                            case DigitHighlight::Conflict: {
+                                painter.setBrush(QBrush(DIGIT_HIGHLIGHTED_CONFLICT));
+                                break;
+                            }
+                        }
                         painter.drawEllipse(digit_pos, radius, radius);
                     }
-                }
-
-                // conflicts are returned separately as full lists
-                // because they are required for the solver anyway
-                if (m_candidates_highlighted_conflict[digit]) {
-                    painter.setBrush(QBrush(DIGIT_HIGHLIGHTED_CONFLICT));
-                    painter.drawEllipse(digit_pos, radius, radius);
                 }
                 digit++;
             }
@@ -173,80 +184,57 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
     );
 }
 
-// TODO: Is this necessary?
-auto SudokuCellWidget::sizeHint() const -> QSize {
-    return QSize(this->width(), this->height());
-}
-
-auto SudokuCellWidget::digit() const -> int {
-    if (m_is_entry) {
-        return m_digit;
+auto SudokuCellWidget::digit() const -> std::optional<int> {
+    if (this->is_clue()) {
+        return std::get<Clue>(m_state).digit;
+    } else if (this->is_entry()) {
+        return std::get<Entry>(m_state).digit;
     }
-    // TODO:
-    // else throw some error
+    return std::optional<int>();
 }
 
-auto SudokuCellWidget::candidates() const -> std::bitset<9> {
-    if (!m_is_entry) {
-        return m_candidates;
+auto SudokuCellWidget::candidates() const -> std::optional<CellCandidates> {
+    if ( std::holds_alternative<CellCandidates>(m_state)) {
+        return std::get<CellCandidates>(m_state);
     }
-    // TODO:
-    // else throw some error
-}
-
-auto SudokuCellWidget::focusInEvent(QFocusEvent *event) -> void {
-    event->accept();
-    m_is_focused = true;
-    this->update();
-}
-
-auto SudokuCellWidget::focusOutEvent(QFocusEvent *event) -> void {
-    event->accept();
-    m_is_focused = false;
-    this->update();
+    return std::optional<CellCandidates>();
 }
 
 auto SudokuCellWidget::try_set_possibility(int digit, bool is_possible) -> bool {
-    if (m_is_entry) {
+    if (!this->is_candidates()) {
         return false;
     }
     assert(0 < digit && digit < 10);
-    m_candidates[digit-1] = is_possible;
+    auto &candidates = std::get<CellCandidates>(m_state);
+    candidates[digit-1] = is_possible;
     return true;
 }
 
 auto SudokuCellWidget::set_clue(int digit) -> void {
     assert(0 < digit && digit < 10);
-    m_is_entry = true;
-    m_is_clue = true;
-    m_digit = digit;
+    m_state = Clue { .digit = digit };
 }
 
 // non-clue entry
 auto SudokuCellWidget::try_set_entry(int digit) -> bool {
-    if (m_is_clue || m_is_entry) {
+    if (!this->is_candidates()) {
         return false;
     }
 
     assert(0 < digit && digit < 10);
-
-    m_is_entry = true;
-    m_is_clue = false;
-    m_digit = digit;
+    m_state = Entry { .digit = digit };
 }
 
 auto SudokuCellWidget::clear() -> void {
-    m_is_clue = false;
-    m_is_entry = false;
-    m_digit = 0;
-    m_candidates = std::bitset<9>();
+    m_state = std::bitset<9>();
 }
 
 auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
-    if (m_in_hint_mode) {
+    if (this->in_hint_mode()) {
         return;
     }
 
+    // move with arrow keys
     Qt::Key arrow_keys[] = {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down};
     Direction directions[] = {Direction::Left, Direction::Up, Direction::Right, Direction::Down};
 
@@ -260,13 +248,17 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
         return;
     }
 
-    if (m_is_clue) {
+    // entries and clues are unalterable except by undoing
+    if (!this->candidates()) {
         return;
     }
+    auto candidates = this->candidates().value();
 
+    // highest and lowest key to enter digits
     auto one = Qt::Key_1;
     auto nine = Qt::Key_9;
 
+    // keys for toggling pencilmarks
     std::array<Qt::Key, 9> second_row = {
         Qt::Key_F1,
         Qt::Key_F2,
@@ -279,6 +271,8 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
         Qt::Key_F9
     };
 
+    // <Space> and <Return> are dependent on the current highlighted digit
+    // <Space> toggles pencilmark, <Return> enters digit
     auto highlighted_digit = m_grid->m_highlighted_digit;
     if (highlighted_digit != 0) {
         auto candidate = Candidate {
@@ -288,7 +282,7 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
         if (event->key() == Qt::Key_Return) {
             m_grid->insert_candidate(candidate);
         } else if (event->key() == Qt::Key_Space) {
-            auto is_possible = m_candidates[highlighted_digit-1];
+            auto is_possible = candidates[highlighted_digit-1];
             m_grid->set_candidate(candidate, !is_possible);
         }
     }
@@ -304,7 +298,7 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
 
         if (key_ptr != second_row.end()) {
             int pos = std::distance(second_row.begin(), key_ptr);
-            auto is_possible = m_candidates[pos];
+            auto is_possible = candidates[pos];
             m_grid->set_candidate(
                 Candidate {
                     .cell = m_cell_nr,
@@ -318,15 +312,29 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
 }
 
 auto SudokuCellWidget::reset_hint_highlights() -> void {
-    m_candidates_highlighted = {};
-    m_candidates_highlighted_conflict = {};
+    m_candidates_highlights = {};
     m_hint_mode = HintHighlight::None;
 }
 
 auto SudokuCellWidget::set_digit_highlight(int digit, bool is_conflict) -> void {
+    auto& highlight = m_candidates_highlights[digit];
     if (is_conflict) {
-        m_candidates_highlighted_conflict[digit] = true;
+       highlight = DigitHighlight::Conflict;
     } else {
-        m_candidates_highlighted[digit] = true;
+        highlight = DigitHighlight::Regular;
     }
+}
+
+auto SudokuCellWidget::in_hint_mode() const -> bool {
+    m_grid->in_hint_mode();
+}
+
+
+auto SudokuCellWidget::contains_highlighted_digit() const -> bool {
+    auto maybe_candidates = this->candidates();
+    if (!maybe_candidates) {
+        return false;
+    }
+    auto candidates = *maybe_candidates;
+    return candidates[m_grid->m_highlighted_digit - 1];
 }

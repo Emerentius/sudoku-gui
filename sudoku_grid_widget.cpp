@@ -170,8 +170,6 @@ auto SudokuGridWidget::update_cells() -> void {
         cell_ptr++;
         c->update(); // currently superflous because update_highlights does it as well
     }
-
-    this->update_highlights();
 }
 
 auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void {
@@ -249,7 +247,7 @@ auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
 auto SudokuGridWidget::set_candidate(Candidate candidate, bool is_possible) -> void {
     this->push_savepoint();
     this->_set_candidate(candidate, is_possible);
-    this->update_highlights();
+    this->update_cells();
 }
 
 // set candidate in storage and cell, don't create a savepoint
@@ -264,16 +262,7 @@ auto SudokuGridWidget::_set_candidate(Candidate candidate, bool is_possible) -> 
 auto SudokuGridWidget::highlight_digit(int digit) -> void {
     assert(digit >= 0 && digit < 10);
     m_highlighted_digit = digit;
-    this->update_highlights();
-}
-
-auto SudokuGridWidget::update_highlights() -> void {
-    auto hl_digit = m_highlighted_digit;
-    for (auto& cell : m_cells) {
-        auto is_candidate = cell->candidates()[hl_digit - 1];
-        cell->m_is_highlighted = is_candidate;
-        cell->update();
-    }
+    this->update_cells();
 }
 
 auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
@@ -281,7 +270,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
         // insert the results of the hint
         if (m_hint_candidate.has_value()) {
             this->insert_candidate(*m_hint_candidate);
-            m_hint_candidate = std::nullopt;
+            m_hint_candidate = {};
         }
         if (m_hint_conflicts.has_value()) {
             this->push_savepoint();
@@ -291,14 +280,13 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
                 auto conflict = conflicts_get(*m_hint_conflicts, i);
                 this->_set_candidate(conflict, false);
             }
-            m_hint_conflicts = std::nullopt;
+            m_hint_conflicts = {};
             this->recompute_candidates();
         }
 
         // reset out of hint mode
         m_in_hint_mode = false;
         for (auto *cell : m_cells) {
-            cell->m_in_hint_mode = false;
             cell->reset_hint_highlights();
             cell->update();
         }
@@ -310,7 +298,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
     auto deductions = results.deductions;
     auto n_deductions = deductions_len(deductions);
 
-    qDebug() << n_deductions << "\n";
+    qDebug() << n_deductions;
     if (n_deductions == 0) {
         return; // nothing found, don't change anything
     }
@@ -463,10 +451,13 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
     // update the cells or nothing happens
     m_in_hint_mode = true;
     for (auto *cell : m_cells) {
-        cell->m_in_hint_mode = true;
         cell->update();
     }
 
+}
+
+auto SudokuGridWidget::in_hint_mode() const -> bool {
+    return m_in_hint_mode;
 }
 
 auto SudokuGridWidget::set_house_highlight(int house, HintHighlight highlight) -> void {
@@ -496,8 +487,8 @@ auto SudokuGridWidget::set_house_highlight(int house, HintHighlight highlight) -
             }
         }
     }
-
 }
+
 auto SudokuGridWidget::set_cell_highlight(int cell, HintHighlight highlight) -> void {
     assert(cell < 81);
     m_cells[cell]->m_hint_mode = highlight;

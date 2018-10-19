@@ -38,7 +38,6 @@ class SudokuGridWidget final : public QuadraticQFrame {
         auto push_savepoint() -> void;
         auto pop_savepoint() -> void;
         auto update_cells() -> void;
-        auto update_highlights() -> void;
         auto initialize_cells() -> void;
         auto generate_layout() -> void;
         auto set_clues() -> void;
@@ -62,6 +61,8 @@ class SudokuGridWidget final : public QuadraticQFrame {
         auto set_candidate(Candidate candidate, bool is_possible) -> void;
         auto undo() -> bool;
         auto redo() -> bool;
+
+        auto in_hint_mode() const -> bool;
 
     public slots:
         void highlight_digit(int digit);
