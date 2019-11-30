@@ -9,17 +9,6 @@ build
 ####################################################
 # everything below from github.com/github/gitignore
 ####################################################
-# File: CMake.gitignore
-####################################################
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Testing
-Makefile
-cmake_install.cmake
-install_manifest.txt
-compile_commands.json
-CTestTestfile.cmake
 
 ####################################################
 # File: Qt.gitignore

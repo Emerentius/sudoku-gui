@@ -9,7 +9,9 @@ The cmake file is set to require the first two.
 
 Building should be just
 ```bash
-$ cmake .
+$ mkdir build
+$ cd build
+$ cmake ..
 $ make
 ```
 
