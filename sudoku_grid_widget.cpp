@@ -383,6 +383,45 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             m_hint_conflicts = data.conflicts;
             break;
         }
+        case DeductionTag::Wing: {
+            auto data = deduction.data.wing;
+            auto digits = std::bitset<9>(data.hinge_digits);
+            auto pincer_cells_lower = std::bitset<81>{data.pincers[0]};
+            auto pincer_cells_upper = std::bitset<81>{data.pincers[1]};
+            auto pincer_cells = pincer_cells_upper << 64 | pincer_cells_lower;
+            m_hint_conflicts = data.conflicts;
+
+            auto affected_cells = std::vector { data.hinge };
+
+            for (size_t cell = 0; cell < 81; cell++) {
+                if (!pincer_cells[cell]) {
+                    continue;
+                }
+
+                affected_cells.push_back(cell);
+            }
+
+            for (auto pattern_cell : affected_cells) {
+                set_cell_highlight(pattern_cell, HintHighlight::Strong);
+                for (size_t digit = 0; digit < 9; digit++) {
+                    if (!digits[digit]) {
+                        continue;
+                    }
+                    m_cells[pattern_cell]->set_digit_highlight(digit, false);
+                }
+            }
+            break;
+        }
+        /*
+        case DeductionTag::Fish: {
+            auto data = deduction.data.fish;
+            break;
+        }
+        case DeductionTag::AvoidableRectangle: {
+            auto data = deduction.data.avoidable_rectangle;
+            break;
+        }
+        */
         default:
             break;
     }
