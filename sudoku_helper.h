@@ -24,8 +24,12 @@ auto stack(int cell) -> int {
     return col(cell) / 3;
 }
 
+auto block_from_band_and_stack(int band, int stack) -> int {
+    return band * 3 + stack;
+}
+
 auto block(int cell) -> int {
-    return band(cell) * 3 + stack(cell);
+    return block_from_band_and_stack(band(cell), stack(cell));
 }
 
 auto house_type(int house) -> HouseType {
@@ -115,13 +119,9 @@ auto cell_at_position(int house, int position) -> int {
 
 auto block_of_miniline(int miniline) -> int {
     if (miniline < 27) {
-        auto band = miniline / 9;
-        auto stack = miniline % 3;
-        return band * 3 + stack;
+        return block_from_band_and_stack(miniline / 9, miniline % 3);
     } else {
-        auto band = miniline % 3;
-        auto stack = miniline / 9 - 3;
-        return band * 3 + stack;
+        return block_from_band_and_stack(miniline % 3, miniline / 9 - 3);
     }
 }
 
