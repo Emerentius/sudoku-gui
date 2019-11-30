@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
+#include "build/sudoku_ffi/src/sudoku_ffi/sudoku.h"
 #include <QFrame>
 #include "quadratic_qframe.h"
 #include "hint_highlight.h"

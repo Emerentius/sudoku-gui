@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sudoku_ffi/src/sudoku_ffi/sudoku.h"
+#include "build/sudoku_ffi/src/sudoku_ffi/sudoku.h"
 #include <cassert>
 
 // ideally, the things in this file will either be expanded into
