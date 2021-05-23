@@ -4,12 +4,10 @@
 #include <QAction>
 #include <QActionGroup>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
+    // clang-format off
     QToolButton *buttons[] = {
         ui->digit_button_off,
         ui->digit_button_1,
@@ -22,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->digit_button_8,
         ui->digit_button_9,
     };
+    // clang-format on
 
     // group actions so they uncheck each other
     auto action_group = new QActionGroup(this);
@@ -33,14 +32,12 @@ MainWindow::MainWindow(QWidget *parent) :
         action->setCheckable(true);
         action->setIconText(button->text());
 
-        auto shortcut = QKeySequence( (int) Qt::ALT + (int) Qt::Key_0 + digit);
+        auto shortcut = QKeySequence((int) Qt::ALT + (int) Qt::Key_0 + digit);
         action->setShortcut(shortcut);
 
         button->setDefaultAction(action);
 
-        connect(action, &QAction::triggered,
-            [this, digit]() { this->ui->sudoku_grid->highlight_digit(digit); }
-        );
+        connect(action, &QAction::triggered, [this, digit]() { this->ui->sudoku_grid->highlight_digit(digit); });
     }
 
     // associate hint buttons with their respective strategies
@@ -68,8 +65,8 @@ MainWindow::MainWindow(QWidget *parent) :
     auto hint_strategies = [=, this]() {
         std::vector<Strategy> strategies;
 
-        for (auto &pair : button_strategies) {
-            auto *button = pair.first;
+        for (auto& pair : button_strategies) {
+            auto* button = pair.first;
             auto strategy = pair.second;
 
             if (button->isChecked()) {
@@ -85,26 +82,19 @@ MainWindow::MainWindow(QWidget *parent) :
     auto hint_action = ui->action_hint;
     ui->hint_button->setDefaultAction(hint_action);
 
-    connect(hint_action, &QAction::triggered,
-            hint_strategies);
+    connect(hint_action, &QAction::triggered, hint_strategies);
 
 
     // new sudoku
-    connect(ui->action_new_sudoku, &QAction::triggered,
-            [this]() {
-                ui->sudoku_grid->generate_new_sudoku();
-            });
+    connect(ui->action_new_sudoku, &QAction::triggered, [this]() { ui->sudoku_grid->generate_new_sudoku(); });
 
     // undo
-    connect(ui->action_undo, &QAction::triggered,
-            [this]() { ui->sudoku_grid->undo(); });
+    connect(ui->action_undo, &QAction::triggered, [this]() { ui->sudoku_grid->undo(); });
 
     // redo
-    connect(ui->action_redo, &QAction::triggered,
-            [this]() { ui->sudoku_grid->redo(); });
+    connect(ui->action_redo, &QAction::triggered, [this]() { ui->sudoku_grid->redo(); });
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }

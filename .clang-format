@@ -1,0 +1,47 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlignAfterOpenBracket: AlwaysBreak
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+
+# BreakBeforeBraces should be "Attach", but if you have lots of long argument
+# lists, this may be set to WebKit (== Attach but break before brace after functions)
+# to work around a missing feature. clang-format has no option of breaking after the closing
+# bracket of a long argument list
+# example:
+# void foo(
+#     arg1,
+#     …,
+#     last_arg
+# ) {  // <= formatting it like this with a break is impossible. The `)` will always be right after `last_arg`
+#
+# Which is strange because having the closing bracket on the same line is objectively bad
+# as you can't immediately see the transition from argument list to function body.
+# Github Issue for the feature: https://reviews.llvm.org/D33029
+#
+BreakBeforeBraces: Attach
+ColumnLimit: 120
+Cpp11BracedListStyle: false
+DerivePointerAlignment: false
+FixNamespaceComments: false
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: All
+PointerAlignment: Left
+SortIncludes: false
+SortUsingDeclarations: false
+SpaceAfterCStyleCast: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+UseTab: Never

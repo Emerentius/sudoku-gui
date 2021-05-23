@@ -14,11 +14,8 @@
 #include <algorithm>
 #include <cassert>
 
-SudokuCellWidget::SudokuCellWidget(int cell_nr, SudokuGridWidget *parent) :
-    QWidget(parent),
-    m_grid(parent),
-    m_cell_nr(cell_nr)
-{
+SudokuCellWidget::SudokuCellWidget(int cell_nr, SudokuGridWidget* parent)
+    : QWidget(parent), m_grid(parent), m_cell_nr(cell_nr) {
     this->setFocusPolicy(Qt::FocusPolicy::ClickFocus);
 }
 
@@ -48,9 +45,12 @@ auto SudokuCellWidget::fg_color() const -> QColor {
 auto SudokuCellWidget::bg_color() const -> QColor {
     if (this->in_hint_mode()) {
         switch (m_hint_mode) {
-            case HintHighlight::Strong: return BG_HIGHLIGHTED_HINT_STRONG;
-            case HintHighlight::Weak:   return BG_HIGHLIGHTED_HINT_WEAK;
-            case HintHighlight::None:   return BG_DEFAULT;
+            case HintHighlight::Strong:
+                return BG_HIGHLIGHTED_HINT_STRONG;
+            case HintHighlight::Weak:
+                return BG_HIGHLIGHTED_HINT_WEAK;
+            case HintHighlight::None:
+                return BG_DEFAULT;
         }
     }
 
@@ -78,7 +78,7 @@ auto SudokuCellWidget::bg_color_inner() const -> QColor {
     return BG_DEFAULT;
 }
 
-auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
+auto SudokuCellWidget::paintEvent(QPaintEvent* event) -> void {
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -97,7 +97,7 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
         painter.setBrush(QBrush(bg_inner));
         auto ring_width = this->width() / 12;
         auto low = ring_width;
-        auto high = this->width() - 2*low;
+        auto high = this->width() - 2 * low;
         painter.drawRoundedRect(QRect(low, low, high, high), 25, 25, Qt::SizeMode::RelativeSize);
     }
 
@@ -108,7 +108,7 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
 
     auto digit = this->digit();
     if (digit) {
-        font.setPixelSize( this->width() * 5 / 6 );
+        font.setPixelSize(this->width() * 5 / 6);
         text = QString::number(digit.value());
     } else {
         auto candidates = this->candidates().value();
@@ -125,7 +125,7 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
             for (int col = 0; col < 3; col++) {
                 auto num = 3 * row + col;
                 if (candidates[num]) {
-                    text += QString::number(num+1);
+                    text += QString::number(num + 1);
                 } else {
                     text += nbs;
                 }
@@ -181,11 +181,7 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
 
     // TODO: The additional alignment flags may be unnecessary
     //       Check it!
-    painter.drawText(
-        event->rect(),
-        alignment | Qt::TextIncludeTrailingSpaces | Qt::TextJustificationForced,
-        text
-    );
+    painter.drawText(event->rect(), alignment | Qt::TextIncludeTrailingSpaces | Qt::TextJustificationForced, text);
 }
 
 auto SudokuCellWidget::digit() const -> std::optional<int> {
@@ -199,20 +195,20 @@ auto SudokuCellWidget::digit() const -> std::optional<int> {
 
 auto SudokuCellWidget::candidates() const -> std::optional<CellCandidates> {
     auto cell_state = this->cell_state();
-    if ( std::holds_alternative<CellCandidates>(cell_state)) {
+    if (std::holds_alternative<CellCandidates>(cell_state)) {
         return std::get<CellCandidates>(cell_state);
     }
     return std::optional<CellCandidates>();
 }
 
-auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
+auto SudokuCellWidget::keyPressEvent(QKeyEvent* event) -> void {
     if (this->in_hint_mode()) {
         return;
     }
 
     // move with arrow keys
-    Qt::Key arrow_keys[] = {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down};
-    Direction directions[] = {Direction::Left, Direction::Up, Direction::Right, Direction::Down};
+    Qt::Key arrow_keys[] = { Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down };
+    Direction directions[] = { Direction::Left, Direction::Up, Direction::Right, Direction::Down };
 
     auto start = std::begin(arrow_keys);
     auto end = std::end(arrow_keys);
@@ -235,6 +231,7 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
     auto nine = Qt::Key_9;
 
     // keys for toggling pencilmarks
+    // clang-format off
     std::array<Qt::Key, 9> second_row = {
         Qt::Key_F1,
         Qt::Key_F2,
@@ -246,26 +243,27 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
         Qt::Key_F8,
         Qt::Key_F9
     };
+    // clang-format on
 
     // <Space> and <Return> are dependent on the current highlighted digit
     // <Space> toggles pencilmark, <Return> enters digit
     auto highlighted_digit = m_grid->m_highlighted_digit;
     if (highlighted_digit != 0) {
-        auto candidate = Candidate {
+        auto candidate = Candidate{
             .cell = m_cell_nr,
             .num = highlighted_digit,
         };
         if (event->key() == Qt::Key_Return) {
             m_grid->insert_candidate(candidate);
         } else if (event->key() == Qt::Key_Space) {
-            auto is_possible = candidates[highlighted_digit-1];
+            auto is_possible = candidates[highlighted_digit - 1];
             m_grid->set_candidate(candidate, !is_possible);
         }
     }
 
     if (one <= event->key() && event->key() <= nine) {
         uint8_t num = event->key() - Qt::Key_0;
-        m_grid->insert_candidate(Candidate {
+        m_grid->insert_candidate(Candidate{
             .cell = m_cell_nr,
             .num = num,
         });
@@ -276,12 +274,11 @@ auto SudokuCellWidget::keyPressEvent(QKeyEvent *event) -> void {
             int pos = std::distance(second_row.begin(), key_ptr);
             auto is_possible = candidates[pos];
             m_grid->set_candidate(
-                Candidate {
+                Candidate{
                     .cell = m_cell_nr,
-                    .num = static_cast<uint8_t>(pos+1),
+                    .num = static_cast<uint8_t>(pos + 1),
                 },
-                !is_possible
-            );
+                !is_possible);
         }
     }
     this->update();
@@ -295,7 +292,7 @@ auto SudokuCellWidget::reset_hint_highlights() -> void {
 auto SudokuCellWidget::set_digit_highlight(int digit, bool is_conflict) -> void {
     auto& highlight = m_candidates_highlights[digit];
     if (is_conflict) {
-       highlight = DigitHighlight::Conflict;
+        highlight = DigitHighlight::Conflict;
     } else {
         highlight = DigitHighlight::Regular;
     }

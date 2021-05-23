@@ -44,7 +44,7 @@ auto house_type(int house) -> HouseType {
 }
 
 // internal iteration because C++ iterators are crap
-template<typename F>
+template <typename F>
 auto foreach_cell_in_row(int row, F f) -> void {
     auto first_cell = row * 9;
     for (int cell = first_cell; cell < first_cell + 9; cell++) {
@@ -52,7 +52,7 @@ auto foreach_cell_in_row(int row, F f) -> void {
     }
 }
 
-template<typename F>
+template <typename F>
 auto foreach_cell_in_col(int col, F f) -> void {
     auto first_cell = col;
     for (int cell = first_cell; cell < 81; cell += 9) {
@@ -60,7 +60,7 @@ auto foreach_cell_in_col(int col, F f) -> void {
     }
 }
 
-template<typename F>
+template <typename F>
 auto foreach_cell_in_block(int block, F f) -> void {
     auto first_row = block / 3 * 3;
     auto first_col = block % 3 * 3;
@@ -72,20 +72,29 @@ auto foreach_cell_in_block(int block, F f) -> void {
     }
 }
 
-template<typename F>
+template <typename F>
 auto foreach_cell_in_house(int house, F f) -> void {
     switch (house_type(house)) {
-        case HouseType::Row:   foreach_cell_in_row(house, f);        break;
-        case HouseType::Col:   foreach_cell_in_col(house - 9, f);    break;
-        case HouseType::Block: foreach_cell_in_block(house - 18, f); break;
+        case HouseType::Row:
+            foreach_cell_in_row(house, f);
+            break;
+        case HouseType::Col:
+            foreach_cell_in_col(house - 9, f);
+            break;
+        case HouseType::Block:
+            foreach_cell_in_block(house - 18, f);
+            break;
     }
 }
 
 auto house_of_cell(int cell, HouseType type) -> int {
     switch (type) {
-        case HouseType::Row:   return row(cell);
-        case HouseType::Col:   return col(cell) + 9;
-        case HouseType::Block: return block(cell) + 18;
+        case HouseType::Row:
+            return row(cell);
+        case HouseType::Col:
+            return col(cell) + 9;
+        case HouseType::Block:
+            return block(cell) + 18;
     }
 }
 
@@ -109,9 +118,12 @@ auto block_cell_at_position(int block, int position) -> int {
 
 auto cell_at_position(int house, int position) -> int {
     switch (house_type(house)) {
-        case HouseType::Row: return row_cell_at_position(house, position);
-        case HouseType::Col: return col_cell_at_position(house - 9, position);
-        case HouseType::Block: return block_cell_at_position(house - 18, position);
+        case HouseType::Row:
+            return row_cell_at_position(house, position);
+        case HouseType::Col:
+            return col_cell_at_position(house - 9, position);
+        case HouseType::Block:
+            return block_cell_at_position(house - 18, position);
     }
 }
 

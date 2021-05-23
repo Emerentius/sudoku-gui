@@ -10,7 +10,7 @@ const int MAJOR_LINE_SIZE = 6;
 const int MINOR_LINE_SIZE = 2;
 
 
-SudokuGridWidget::SudokuGridWidget(QWidget *parent) : QuadraticQFrame(parent) {
+SudokuGridWidget::SudokuGridWidget(QWidget* parent) : QuadraticQFrame(parent) {
     this->initialize_cells();
     this->generate_layout();
 
@@ -48,7 +48,7 @@ auto SudokuGridWidget::generate_new_sudoku() -> void {
     for (auto& cell_state : grid_state) {
         auto digit = sudoku._0[cell];
         if (digit != 0) {
-            cell_state = Clue { .digit = digit };
+            cell_state = Clue{ .digit = digit };
         } else {
             cell_state = CellCandidates().set();
         }
@@ -66,7 +66,7 @@ auto SudokuGridWidget::initialize_cells() -> void {
 
 // assumes initialize_cells was already called
 auto SudokuGridWidget::generate_layout() -> void {
-    auto *outer_layout = new QGridLayout(this);
+    auto* outer_layout = new QGridLayout(this);
     outer_layout->setMargin(0);
     outer_layout->setHorizontalSpacing(MAJOR_LINE_SIZE);
     outer_layout->setVerticalSpacing(MAJOR_LINE_SIZE);
@@ -75,7 +75,7 @@ auto SudokuGridWidget::generate_layout() -> void {
     for (int row = 0; row < 3; row++) {
         for (int col = 0; col < 3; col++) {
             // TODO: Find out whether these layouts are cleaned up by the outer layout
-            auto *inner_layout = new QGridLayout();
+            auto* inner_layout = new QGridLayout();
             inner_layout->setMargin(0);
             inner_layout->setHorizontalSpacing(MINOR_LINE_SIZE);
             inner_layout->setVerticalSpacing(MINOR_LINE_SIZE);
@@ -90,11 +90,11 @@ auto SudokuGridWidget::generate_layout() -> void {
         auto col = cell % 9;
         auto band = row / 3;
         auto stack = col / 3;
-        auto box = band*3 + stack;
+        auto box = band * 3 + stack;
         auto minirow = row % 3;
         auto minicol = col % 3;
 
-        auto *cell_widget = m_cells[cell];
+        auto* cell_widget = m_cells[cell];
         inner_layouts[box]->addWidget(cell_widget, minirow, minicol);
     }
 }
@@ -112,7 +112,7 @@ auto SudokuGridWidget::grid_state() const -> GridState {
     const auto& sudoku_state = this->sudoku_state();
     for (int cell = 0; cell < 81; cell++) {
         auto const cell_widget_state = sudoku_state[cell];
-        auto &cell_state = grid_state.grid[cell];
+        auto& cell_state = grid_state.grid[cell];
 
         if (std::holds_alternative<CellCandidates>(cell_widget_state)) {
             auto candidates = std::get<CellCandidates>(cell_widget_state);
@@ -157,10 +157,12 @@ auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void
     auto col = current_cell % 9;
 
     switch (direction) {
+        // clang-format off
         case Direction::Left:  if (col > 0) { col--; } break;
         case Direction::Right: if (col < 8) { col++; } break;
         case Direction::Up:    if (row > 0) { row--; } break;
         case Direction::Down:  if (row < 8) { row++; } break;
+            // clang-format on
     };
 
     auto n_cell = row * 9 + col;
@@ -171,7 +173,7 @@ auto SudokuGridWidget::move_focus(int current_cell, Direction direction) -> void
 auto SudokuGridWidget::push_savepoint() -> void {
     // if the stack contains remnants from undo
     // delete them
-    m_sudoku.resize(m_stack_position+1);
+    m_sudoku.resize(m_stack_position + 1);
 
     auto state = this->sudoku_state();
     m_sudoku.push_back(state);
@@ -215,7 +217,7 @@ auto SudokuGridWidget::insert_candidate(Candidate candidate) -> void {
         return;
     }
 
-    cell_state = Entry { .digit = candidate.num };
+    cell_state = Entry{ .digit = candidate.num };
     this->recompute_candidates();
 }
 
@@ -233,7 +235,7 @@ auto SudokuGridWidget::_set_candidate(Candidate candidate, bool is_possible) -> 
         return;
     }
     auto& cell_cands = std::get<CellCandidates>(cell_state);
-    cell_cands &= ~( 1u << (candidate.num - 1));
+    cell_cands &= ~(1u << (candidate.num - 1));
     cell_cands |= (uint16_t) is_possible << (candidate.num - 1);
 }
 
@@ -264,7 +266,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
 
         // reset out of hint mode
         m_in_hint_mode = false;
-        for (auto *cell : m_cells) {
+        for (auto* cell : m_cells) {
             cell->reset_hint_highlights();
             cell->update();
         }
@@ -295,7 +297,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             auto row = cell / 9;
             auto col = cell % 9;
             this->set_house_highlight(row, HintHighlight::Weak);
-            this->set_house_highlight(col+9, HintHighlight::Weak);
+            this->set_house_highlight(col + 9, HintHighlight::Weak);
             this->set_cell_highlight(cell, HintHighlight::Strong);
 
             m_hint_candidate = candidate;
@@ -319,12 +321,10 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             auto block = block_of_miniline(miniline);
             auto line = line_of_miniline(miniline);
 
-            this->set_house_highlight(block+18, HintHighlight::Weak);
+            this->set_house_highlight(block + 18, HintHighlight::Weak);
             this->set_house_highlight(line, HintHighlight::Weak);
 
-            auto set_digit_highlights = [&](int cell) {
-                    m_cells[cell]->set_digit_highlight(digit-1, false);
-                };
+            auto set_digit_highlights = [&](int cell) { m_cells[cell]->set_digit_highlight(digit - 1, false); };
             if (data.is_pointing) {
                 foreach_cell_in_block(block, set_digit_highlights);
             } else {
@@ -346,7 +346,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
                 auto cell_nr = cell_at_position(data.house, pos);
                 this->set_cell_highlight(cell_nr, HintHighlight::Strong);
 
-                auto *cell = m_cells[cell_nr];
+                auto* cell = m_cells[cell_nr];
                 for (int digit = 0; digit < 9; digit++) {
                     if (!digits[digit]) {
                         continue;
@@ -375,8 +375,8 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
                     }
                     auto cell_nr = cell_at_position(line, pos);
                     this->set_cell_highlight(cell_nr, HintHighlight::Strong);
-                    auto *cell = m_cells[cell_nr];
-                    cell->set_digit_highlight(digit-1, false);
+                    auto* cell = m_cells[cell_nr];
+                    cell->set_digit_highlight(digit - 1, false);
                 }
             }
 
@@ -386,12 +386,12 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
         case DeductionTag::Wing: {
             auto data = deduction.data.wing;
             auto digits = std::bitset<9>(data.hinge_digits);
-            auto pincer_cells_lower = std::bitset<81>{data.pincers[0]};
-            auto pincer_cells_upper = std::bitset<81>{data.pincers[1]};
+            auto pincer_cells_lower = std::bitset<81>{ data.pincers[0] };
+            auto pincer_cells_upper = std::bitset<81>{ data.pincers[1] };
             auto pincer_cells = pincer_cells_upper << 64 | pincer_cells_lower;
             m_hint_conflicts = data.conflicts;
 
-            auto affected_cells = std::vector { data.hinge };
+            auto affected_cells = std::vector{ data.hinge };
 
             for (size_t cell = 0; cell < 81; cell++) {
                 if (!pincer_cells[cell]) {
@@ -428,7 +428,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
 
     if (m_hint_candidate.has_value()) {
         auto candidate = *m_hint_candidate;
-        m_cells[candidate.cell]->set_digit_highlight(candidate.num-1, false);
+        m_cells[candidate.cell]->set_digit_highlight(candidate.num - 1, false);
     }
 
     if (m_hint_conflicts.has_value()) {
@@ -442,10 +442,9 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
 
     // update the cells or nothing happens
     m_in_hint_mode = true;
-    for (auto *cell : m_cells) {
+    for (auto* cell : m_cells) {
         cell->update();
     }
-
 }
 
 auto SudokuGridWidget::in_hint_mode() const -> bool {
@@ -478,7 +477,7 @@ auto SudokuGridWidget::set_house_highlight(int house, HintHighlight highlight) -
         auto first_col = stack * 3;
         for (int row = first_row; row < first_row + 3; row++) {
             for (int col = first_col; col < first_col + 3; col++) {
-                auto cell = row*9 + col;
+                auto cell = row * 9 + col;
                 set_cell_highlight(cell, highlight);
             }
         }
