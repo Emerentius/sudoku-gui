@@ -1,5 +1,5 @@
 #include "sudoku_cell_widget.h"
-#include "build/sudoku_ffi/src/sudoku_ffi/sudoku.h"
+#include "sudoku_ffi/sudoku.h"
 #include "sudoku_grid_widget.h"
 #include "sudoku_helper.h"
 #include <QDebug>

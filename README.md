@@ -4,15 +4,13 @@ This is a Qt5 GUI that uses the Rust sudoku library for all of its game logic. I
 # Build
 You need to have a C++ build environment, cmake, Qt 5 and Rust installed.
 I don't know what minimum versions are strictly required for the C++ environment,
-but CMake >= 3.10, Qt >=5.9.5 and a C++17 capable compiler should work. Rust needs to be >=1.28.
+but CMake >= 3.10, Qt >=5.9.5 and a C++17 capable compiler should work. Rust needs to be >=1.40.
 The cmake file is set to require the first two.
 
 Building should be just
 ```bash
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
+$ cmake -B build
+$ cmake --build build
 ```
 
 But I can only say that it works for certain on Ubuntu 18.04 with all of the required Qt dependencies installed.

@@ -8,6 +8,8 @@ cmake_policy(SET CMP0063 NEW)
 cmake_policy(SET CMP0071 NEW)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
 if(CMAKE_BUILD_TYPE_UPPER STREQUAL DEBUG)
     set(RUST_TARGET_DIR target/debug)
@@ -35,7 +37,6 @@ find_package(Qt5 "${QT_MIN_VERSION}" CONFIG
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -44,30 +45,32 @@ feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAG
 ExternalProject_Add(
     sudoku_ffi
     PREFIX sudoku_ffi
+    #GIT_REPOSITORY file:///home/shared/Code/sudoku/sudoku-ffi
+    #GIT_TAG dev
     GIT_REPOSITORY https://github.com/emerentius/sudoku-ffi
-    GIT_TAG 600a1c9a251062a9f4293741bfe0bea255d98e64
+    GIT_TAG dd8b141742030f33ee0eb003c8e48726978b37d4
     BUILD_IN_SOURCE 1
     BUILD_COMMAND "${Cargo_EXECUTABLE}" build "${RUST_BUILD_FLAG}"
     CONFIGURE_COMMAND ""
     INSTALL_COMMAND ""
 )
 
-# This looks like it should work, but cmake can apparently see through the
-# the variables to where the directory is coming from
-# and determines that the static library built by the external project is
-# actually not a static library, because external projects are hardcoded as UTILITY
-# Therefore, it forbids linking.
-#set(RUST_DIR ExternalProject_Get_Property(sudoku_ffi SOURCE_DIR))
+ExternalProject_Get_property(sudoku_ffi DOWNLOAD_DIR)
+set(sudoku_ffi_crate_dir "${DOWNLOAD_DIR}")
+unset(DOWNLOAD_DIR)
 
-# so instead, we hack it with the wrong variable
-# so it's at least sorta position independent
-SET(RUST_DIR "${CMAKE_CURRENT_BINARY_DIR}/sudoku_ffi/src/sudoku_ffi")
+ExternalProject_Get_Property(sudoku_ffi SOURCE_DIR)
+set(RUST_DIR "${SOURCE_DIR}")
+unset(SOURCE_DIR)
 SET(RUST_LIB "${RUST_DIR}/${RUST_TARGET_DIR}/libsudoku_ffi.a")
 list(APPEND Libs ${RUST_LIB})
 
 list(APPEND Libs Qt5::Widgets Threads::Threads ${CMAKE_DL_LIBS})
-set(SRCS main.cpp mainwindow.cpp sudoku_cell_widget.cpp sudoku_grid_widget.cpp)
+set(SRCS src/main.cpp src/mainwindow.cpp src/sudoku_cell_widget.cpp src/sudoku_grid_widget.cpp)
+
 add_executable(sudoku-gui ${SRCS})
+target_include_directories(sudoku-gui PRIVATE src)
+target_include_directories(sudoku-gui PRIVATE "${sudoku_ffi_crate_dir}")
 
 # rust libraries only exist after sudoku-ffi was built
 add_dependencies(sudoku-gui sudoku_ffi)
@@ -76,3 +79,8 @@ set_target_properties(sudoku-gui PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
+
+# Copy resource files such as icons to build dir
+# so the executable can find them.
+# Does this work with in-source builds? Don't know, don't care.
+file(COPY "icons" DESTINATION "${CMAKE_BINARY_DIR}")

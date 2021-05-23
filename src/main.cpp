@@ -7,5 +7,5 @@ auto main(int argc, char *argv[]) -> int
     MainWindow w;
     w.show();
 
-    return a.exec();
+    return QApplication::exec();
 }
