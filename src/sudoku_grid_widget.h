@@ -19,7 +19,7 @@ class SudokuGridWidget final : public QuadraticQFrame {
 
     std::array<SudokuCellWidget*, 81> m_cells{};
 
-    int m_stack_position = 0;
+    uint32_t m_stack_position = 0;
     std::vector<GridWidgetState> m_sudoku;
 
     bool m_in_hint_mode = false;

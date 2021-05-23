@@ -299,7 +299,7 @@ auto SudokuCellWidget::set_digit_highlight(int digit, bool is_conflict) -> void 
 }
 
 auto SudokuCellWidget::in_hint_mode() const -> bool {
-    m_grid->in_hint_mode();
+    return m_grid->in_hint_mode();
 }
 
 

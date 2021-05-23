@@ -79,6 +79,7 @@ set_target_properties(sudoku-gui PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
+target_compile_options(sudoku-gui PRIVATE -Wall -Wextra -pedantic -Werror)
 
 # Copy resource files such as icons to build dir
 # so the executable can find them.

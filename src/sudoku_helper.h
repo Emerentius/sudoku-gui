@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sudoku_ffi/sudoku.h"
+#include <exception>
 #include <cassert>
 
 // ideally, the things in this file will either be expanded into
@@ -96,6 +97,7 @@ auto house_of_cell(int cell, HouseType type) -> int {
         case HouseType::Block:
             return block(cell) + 18;
     }
+    throw std::logic_error("got unexpected HouseType");
 }
 
 auto row_cell_at_position(int row, int position) -> int {
@@ -125,6 +127,7 @@ auto cell_at_position(int house, int position) -> int {
         case HouseType::Block:
             return block_cell_at_position(house - 18, position);
     }
+    throw std::logic_error("got unexpected HouseType");
 }
 
 // miniline functions

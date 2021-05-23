@@ -23,7 +23,7 @@ SudokuGridWidget::SudokuGridWidget(QWidget* parent) : QuadraticQFrame(parent) {
     this->setPalette(pal);
 
     this->generate_new_sudoku();
-};
+}
 
 auto SudokuGridWidget::cell_state(uint8_t cell) const -> const CellWidgetState& {
     return this->sudoku_state()[cell];
@@ -256,7 +256,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
             this->push_savepoint();
 
             auto len = conflicts_len(*m_hint_conflicts);
-            for (int i = 0; i < len; i++) {
+            for (uint32_t i = 0; i < len; i++) {
                 auto conflict = conflicts_get(*m_hint_conflicts, i);
                 this->_set_candidate(conflict, false);
             }
@@ -434,7 +434,7 @@ auto SudokuGridWidget::hint(std::vector<Strategy> strategies) -> void {
     if (m_hint_conflicts.has_value()) {
         auto len = conflicts_len(*m_hint_conflicts);
 
-        for (int i = 0; i < len; i++) {
+        for (uint32_t i = 0; i < len; i++) {
             auto conflict = conflicts_get(*m_hint_conflicts, i);
             m_cells[conflict.cell]->set_digit_highlight(conflict.num - 1, true);
         }
