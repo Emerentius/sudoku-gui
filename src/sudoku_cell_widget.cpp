@@ -115,7 +115,7 @@ auto SudokuCellWidget::paintEvent(QPaintEvent *event) -> void {
         font.setPixelSize(this->width() / 4);
         // Non-Breaking Space. Normal spaces are trimmed.
         // This forces Qt to lay out the text as given
-        auto nbs = QString::fromUtf8(u8"\u00A0");
+        auto nbs = QString::fromUtf8((const char*) u8"\u00A0");
 
         // for each digit, enter the text representation
         // or a space character, if it's not set

@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
         action->setCheckable(true);
         action->setIconText(button->text());
 
-        auto shortcut = QKeySequence(Qt::ALT + Qt::Key_0 + digit);
+        auto shortcut = QKeySequence( (int) Qt::ALT + (int) Qt::Key_0 + digit);
         action->setShortcut(shortcut);
 
         button->setDefaultAction(action);
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
         std::make_pair(ui->strategy_jellyfish, Strategy::Jellyfish),
     });
 
-    auto hint_strategies = [=]() {
+    auto hint_strategies = [=, this]() {
         std::vector<Strategy> strategies;
 
         for (auto &pair : button_strategies) {

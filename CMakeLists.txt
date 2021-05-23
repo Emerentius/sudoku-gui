@@ -76,7 +76,7 @@ target_include_directories(sudoku-gui PRIVATE "${sudoku_ffi_crate_dir}")
 add_dependencies(sudoku-gui sudoku_ffi)
 target_link_libraries(sudoku-gui ${Libs})
 set_target_properties(sudoku-gui PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
 
